@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Building Cable Distribution Optimizer</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/styles.css" />
+  <!-- D3 for graph rendering -->
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+  <div class="container my-4">
+    <h1 class="text-center mb-4">Building Cable Distribution Optimizer</h1>
+    <div class="row">
+      <!-- Original Layout Card -->
+      <div class="col-md-6 mb-4">
+        <div class="card shadow">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Original Layout</h4>
+            <select id="layoutDropdown" class="form-control" style="width: auto;">
+              <option value="layouts/layout1.json">Layout 1</option>
+              <option value="layouts/layout2.json">Layout 2</option>
+              <option value="layouts/layout3.json">Layout 3</option>
+              <option value="layouts/layout4.json">Layout 4</option>
+              <option value="layouts/layout5.json">Layout 5</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <div id="originalGraphContainer" class="graph-container"></div>
+          </div>
+          <div class="card-footer" id="originalStats"></div>
+        </div>
+      </div>
+      <!-- Optimized Layout Card -->
+      <div class="col-md-6 mb-4">
+        <div class="card shadow">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Optimized Layout</h4>
+            <button class="btn btn-success" id="optimizeBtn">Calculate Optimal Distribution</button>
+          </div>
+          <div class="card-body">
+            <div id="optimizedGraphContainer" class="graph-container"></div>
+          </div>
+          <div class="card-footer" id="optimizedStats"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Optional: Bootstrap and dependencies -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Main JS module -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
