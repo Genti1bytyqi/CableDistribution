@@ -1,0 +1,20 @@
+{
+  "nodes": [
+    { "id": 0, "label": "Main Power",  "x": 50,  "y": 100 },
+    { "id": 1, "label": "Office A",    "x": 150, "y": 50  },
+    { "id": 2, "label": "Office B",    "x": 250, "y": 50  },
+    { "id": 3, "label": "Conference",  "x": 150, "y": 150 },
+    { "id": 4, "label": "Kitchen",     "x": 250, "y": 150 }
+  ],
+  "edges": [
+    { "from": 0, "to": 1, "cost": 10 },
+    { "from": 1, "to": 2, "cost": 15 },
+    { "from": 0, "to": 3, "cost": 20 },
+    { "from": 1, "to": 3, "cost": 12 },
+    { "from": 2, "to": 4, "cost": 18 },
+    { "from": 3, "to": 4, "cost": 8 }
+  ],
+  "constraints": {
+    "maxCableCost": 15
+  }
+}
