@@ -18,13 +18,17 @@
         <div class="card shadow">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Original Layout</h4>
+            <div id="customLayoutControls" style="display:none; margin-right: 10px;">
+              <input type="file" id="floorPlanInput" accept="image/*">
+            </div>
             <select id="layoutDropdown" class="form-control" style="width: auto;">
               <option value="layouts/layout1.json">Layout 1</option>
               <option value="layouts/layout2.json">Layout 2</option>
               <option value="layouts/layout3.json">Layout 3</option>
               <option value="layouts/layout4.json">Layout 4</option>
               <option value="layouts/layout5.json">Layout 5</option>
-            </select>
+              <option value="layouts/custom.json">Custom Layout</option>
+            </select>            
           </div>
           <div class="card-body">
             <div id="originalGraphContainer" class="graph-container"></div>
@@ -42,9 +46,13 @@
           <div class="card-body">
             <div id="optimizedGraphContainer" class="graph-container"></div>
           </div>
-          <div class="card-footer" id="optimizedStats"></div>
+          <div class="card-footer d-flex justify-content-between align-items-center">
+            <div id="optimizedStats">
+            </div>
+            <button class="btn btn-primary" id="saveSVGBtn">Save as SVG</button>
+          </div>
         </div>
-      </div>
+      </div>  
     </div>
   </div>
   <!-- Optional: Bootstrap and dependencies -->
