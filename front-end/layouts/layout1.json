@@ -16,5 +16,6 @@
   ],
   "constraints": {
     "maxCableCost": 15
-  }
+  },
+  "backgroundImage": null
 }
