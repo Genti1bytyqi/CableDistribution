@@ -1,4 +1,3 @@
-// front-end/js/stats.js
 
 export function updateOriginalStats(layout) {
     const statsDiv = document.getElementById("originalStats");
