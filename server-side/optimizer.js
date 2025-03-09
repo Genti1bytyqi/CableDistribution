@@ -1,5 +1,3 @@
-
-
 function isEdgeValid(edge, nodes, constraints) {
   // Check maxCableCost constraint.
   if (constraints.maxCableCost !== undefined && edge.cost > constraints.maxCableCost) {
