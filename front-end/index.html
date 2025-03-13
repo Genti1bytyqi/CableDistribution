@@ -12,7 +12,7 @@
     <h1 class="text-center mb-4">Building Cable Distribution Optimizer</h1>
     <div class="row">
       <!-- Original Layout Card -->
-      <div class="col-md-12 col-lg-6 mb-4">
+      <div class="col-md-12 mb-4">
         <div class="card shadow">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Original Layout</h4>
@@ -31,15 +31,17 @@
           <div class="card-body">
             <div id="originalGraphContainer" class="graph-container"></div>
           </div>
-          <div class="card-footer" id="originalStats"></div>
+           <div class="card-footer d-flex justify-content-between align-items-center">
+      <div id="originalStats"></div>
+      <button class="btn btn-success" id="optimizeBtn">Calculate Optimal Distribution</button>
+    </div>
         </div>
       </div>
       <!-- Optimized Layout Card -->
-      <div class="col-md-12 col-lg-6 mb-4">
+      <div class="col-md-12 mb-4">
         <div class="card shadow">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Optimized Layout</h4>
-            <button class="btn btn-success" id="optimizeBtn">Calculate Optimal Distribution</button>
           </div>
           <div class="card-body">
             <div id="optimizedGraphContainer" class="graph-container"></div>
@@ -57,7 +59,6 @@
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  <!-- Main JS module -->
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -1,14 +1,13 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f0f2f5; /* Softer gray background */
+  background: #f0f2f5;
   margin: 0;
   padding: 0;
   color: #333;
 }
 
 .container {
-  width: 95%; 
-  max-width: 1400px;
+  width: 90%;
   margin: 0 auto;
   padding: 1rem 0;
 }
@@ -21,58 +20,21 @@ h1 {
   color: #333;
 }
 
-.layout-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-}
-
-.layout-selector button,
-.card-header button,
-.btn-group .btn {
-  background-color: #007BFF;
-  color: #fff;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-.layout-selector button:hover,
-.card-header button:hover,
-.btn-group .btn:hover {
-  background-color: #0056b3;
-}
-
 .graph-container {
-  min-height: 550px;
-  width: 100%;
+  min-height: 600px;
+  min-width: 800px;
   background-color: #fff;
   border: 1px solid #dee2e6;
   border-radius: 4px;
   position: relative;
   display: flex;
-  justify-content: center;  
+  justify-content: center;
   align-items: center;
-  padding: 1.5rem; 
-  box-sizing: border-box; 
-}
-
-.cards {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.5rem;
 }
 
 .card {
   flex: 1;
-  min-width: 500px; 
-  max-width: 800px;
+  min-width: 300px;
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -88,7 +50,6 @@ h1 {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-/* Card Header */
 .card-header {
   background: linear-gradient(135deg, #f9f9f9 0%, #e9e9e9 100%);
   padding: 0.75rem 1rem;
@@ -96,46 +57,6 @@ h1 {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #ccc;
-}
-
-.card-header h2 {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #333;
-}
-
-.card-content {
-  padding: 1.5rem;
-  flex: 1;
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-  background-color: #fafafa;
-}
-
-.card-content svg {
-  width: 100%; 
-  height: auto; 
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #ffffff;
-}
-
-.stats-card {
-  margin: 0.5rem;
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  width: 100%; /* Added for full width */
-}
-
-.stats-card h3 {
-  margin-top: 0;
-  font-weight: 500;
-  color: #333;
 }
 
 .card-footer {
@@ -147,19 +68,4 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.btn-group {
-  display: flex;
-  gap: 0.5rem;
-}
-
-@media (max-width: 768px) {
-  .card {
-    min-width: 100%;
-  }
-  
-  .graph-container {
-    min-height: 400px;
-  }
 }

@@ -5,8 +5,8 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
   const container = document.querySelector(containerSelector);
   container.innerHTML = "";
 
-  const width = 500;
-  const height = 300;
+  const width = 1068;
+  const height = 500;
 
   const localNodes = nodes.map(n => ({ ...n }));
   if (shouldCenter) {
@@ -41,7 +41,6 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
     .attr("height", height)
     .attr("fill", "transparent")
     .on("click", function (event) {
-      // Add a new node only if the background was clicked.
       if (event.target.tagName === "rect") {
         const [x, y] = d3.pointer(event);
         const nodeName = prompt("Enter a name for the new node:", "Node " + (nodes.length + 1));
@@ -129,7 +128,6 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
         if (nodeIndex > -1) {
           nodes.splice(nodeIndex, 1);
         }
-        // Remove connected edges in-place.
         for (let i = edges.length - 1; i >= 0; i--) {
           if (edges[i].from === d.id || edges[i].to === d.id) {
             edges.splice(i, 1);
