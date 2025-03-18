@@ -5,6 +5,9 @@ let selectedLayout = null;
 let optimizedEdges = null;
 
 export function selectLayout(layoutFile) {
+
+  const isEditable = layoutFile === "layouts/custom.json";
+
   if (layoutFile === "layouts/custom.json") {
     document.getElementById("customLayoutControls").style.display = "block";
   } else {
@@ -26,7 +29,8 @@ export function selectLayout(layoutFile) {
         "#originalGraphContainer",
         false,
         true,
-        selectedLayout.backgroundImage
+        selectedLayout.backgroundImage,
+        isEditable
       );
       updateOriginalStats(selectedLayout);
 
@@ -120,34 +124,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("DOMContentLoaded", function () {
   const floorPlanInput = document.getElementById("floorPlanInput");
-  if (floorPlanInput) {
-    floorPlanInput.addEventListener("change", function (event) {
-      const file = event.target.files[0];
-      if (file && selectedLayout && selectedLayout.name === "Custom Layout") {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          selectedLayout.backgroundImage = e.target.result;
-          renderGraph(
-            selectedLayout.nodes,
-            selectedLayout.edges,
-            "#originalGraphContainer",
-            false,
-            false,
-            selectedLayout.backgroundImage
-          );
-          if (optimizedEdges) {
+    if (floorPlanInput) {
+      floorPlanInput.addEventListener("change", function (event) {
+        const file = event.target.files[0];
+        if (file && selectedLayout && selectedLayout.name === "Custom Layout") {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            selectedLayout.backgroundImage = e.target.result;
+
             renderGraph(
               selectedLayout.nodes,
-              optimizedEdges,
-              "#optimizedGraphContainer",
-              true,
+              selectedLayout.edges,
+              "#originalGraphContainer",
               false,
-              selectedLayout.backgroundImage
+              true,
+              selectedLayout.backgroundImage,
+              true 
             );
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  }
+            if (optimizedEdges) {
+              renderGraph(
+                selectedLayout.nodes,
+                optimizedEdges,
+                "#optimizedGraphContainer",
+                true,
+                false,
+                selectedLayout.backgroundImage,
+                true
+              );
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
 });

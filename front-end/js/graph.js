@@ -1,29 +1,29 @@
 import { updateOriginalStatsNodesAndEdges } from './stats.js';
 
-export function renderGraph(nodes, edges, containerSelector, isOptimized, shouldCenter = true, backgroundImage = null) {
-  updateOriginalStatsNodesAndEdges(edges);
+export function renderGraph(nodes, edges, containerSelector, isOptimized, shouldCenter = true, backgroundImage = null, isEditable = false) {
+  console.log(backgroundImage);
   const container = document.querySelector(containerSelector);
   container.innerHTML = "";
-
+ 
   const width = 1068;
   const height = 500;
-
+ 
   const localNodes = nodes.map(n => ({ ...n }));
   if (shouldCenter) {
     centerNodes(localNodes, width, height);
   }
-
+ 
   const linkData = edges.map(e => {
     const sourceNode = localNodes.find(n => n.id === e.from);
     const targetNode = localNodes.find(n => n.id === e.to);
     return { source: sourceNode, target: targetNode, cost: e.cost, edgeData: e };
   });
-
+ 
   const svg = d3.select(container)
     .append("svg")
     .attr("width", width)
     .attr("height", height);
-
+ 
   if (backgroundImage) {
     svg.append("image")
       .attr("xlink:href", backgroundImage)
@@ -31,16 +31,15 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
       .attr("y", 0)
       .attr("width", width)
       .attr("height", height)
-      // .attr("preserveAspectRatio", "xMidYMid slice");
       .attr("preserveAspectRatio", "xMidYMid meet");
   }
-
-
+ 
   svg.append("rect")
     .attr("width", width)
     .attr("height", height)
     .attr("fill", "transparent")
-    .on("click", function (event) {
+    .on("click", function(event) {
+      if (!isEditable) return;
       if (event.target.tagName === "rect") {
         const [x, y] = d3.pointer(event);
         const nodeName = prompt("Enter a name for the new node:", "Node " + (nodes.length + 1));
@@ -52,8 +51,9 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
           y: y
         };
         nodes.push(newNode);
-        renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage);
+        renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage, isEditable);
       }
+      updateOriginalStatsNodesAndEdges(selectedLayout);
     });
 
   // Draw edges
