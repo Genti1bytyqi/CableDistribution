@@ -51,12 +51,13 @@ function optimizeSelectedLayout() {
     .then(response => response.json())
     .then(data => {
       optimizedEdges = data.mstEdges;
+      const shouldCenter = selectedLayout.name == "Custom Layout" ? false : true;
       renderGraph(
         selectedLayout.nodes,
         optimizedEdges,
         "#optimizedGraphContainer",
         true,
-        true,
+        shouldCenter,
         selectedLayout.backgroundImage
       );
       updateOptimizedStats(optimizedEdges);

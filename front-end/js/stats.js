@@ -16,7 +16,6 @@ export function updateOriginalStats(layout) {
 
 export function updateOriginalStatsNodesAndEdges(totalEdges) {
   const statsDiv = document.getElementById("originalStats");
-
   const totalEdges1 = totalEdges.length;
   const totalWeight1 = totalEdges.reduce((sum, e) => sum + e.cost, 0);
 

@@ -52,8 +52,9 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
         };
         nodes.push(newNode);
         renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage, isEditable);
+
+        updateOriginalStatsNodesAndEdges(nodes);
       }
-      updateOriginalStatsNodesAndEdges(selectedLayout);
     });
 
   // Draw edges
