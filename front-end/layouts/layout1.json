@@ -1,21 +1,43 @@
 {
   "nodes": [
-    { "id": 0, "label": "Main Power",  "x": 50,  "y": 100 },
-    { "id": 1, "label": "Office A",    "x": 150, "y": 50  },
-    { "id": 2, "label": "Office B",    "x": 250, "y": 50  },
-    { "id": 3, "label": "Conference",  "x": 150, "y": 150 },
-    { "id": 4, "label": "Kitchen",     "x": 250, "y": 150 }
+    { "id": 0, "label": "Main Power",         "x":  810, "y":  100,  "type": "powerSupply"     },
+    { "id": 1, "label": "Distribution Panel", "x":  0, "y":  50,  "type": "mainDistribution" },
+    
+    { "id": 2, "label": "Bedroom Switch",     "x": 200, "y": 250, "type": "switch"           },
+    { "id": 3, "label": "Bedroom Outlet",     "x": 40, "y": 345, "type": "terminal"         },
+    { "id": 4, "label": "Bedroom Light",      "x": 100, "y": 200, "type": "light"            },
+
+    { "id": 5, "label": "Bathroom Switch",    "x": 450, "y":  60, "type": "switch"           },
+    { "id": 6, "label": "Bathroom Outlet",    "x": 380, "y":  110, "type": "terminal"         },
+    { "id": 7, "label": "Bathroom Light",     "x": 350, "y": 40, "type": "light"            },
+
+    { "id": 8, "label": "Kitchen Switch",     "x": 300, "y": 150, "type": "switch"           },
+    { "id": 9, "label": "Kitchen Outlet",     "x": 220, "y": 220, "type": "terminal"         },
+    { "id": 10, "label": "Kitchen Light",     "x": 350, "y": 250, "type": "light"            },
+
+    { "id": 11, "label": "Living Room Switch","x": 760, "y": 100, "type": "switch"           },
+    { "id": 12, "label": "Living Room Outlet","x": 760, "y": 160, "type": "terminal"         },
+    { "id": 13, "label": "Living Room Light", "x": 600, "y": 150, "type": "light"            }
   ],
   "edges": [
-    { "from": 0, "to": 1, "cost": 10 },
-    { "from": 1, "to": 2, "cost": 15 },
-    { "from": 0, "to": 3, "cost": 20 },
-    { "from": 1, "to": 3, "cost": 12 },
-    { "from": 2, "to": 4, "cost": 18 },
-    { "from": 3, "to": 4, "cost": 8 }
+    { "from": 0,  "to": 1,  "cost": 5  },
+
+    { "from": 1,  "to": 2,  "cost": 3  },
+    { "from": 1,  "to": 5,  "cost": 3  },
+    { "from": 1,  "to": 8,  "cost": 4  },
+    { "from": 1,  "to": 11, "cost": 4  },
+
+    { "from": 2,  "to": 3,  "cost": 2  },
+    { "from": 2,  "to": 4,  "cost": 1  },
+    { "from": 5,  "to": 6,  "cost": 2  },
+    { "from": 5,  "to": 7,  "cost": 1  },
+    { "from": 8,  "to": 9,  "cost": 2  },
+    { "from": 8,  "to": 10, "cost": 1  },
+    { "from": 11, "to": 12, "cost": 2  },
+    { "from": 11, "to": 13, "cost": 1  }
   ],
   "constraints": {
     "maxCableCost": 15
   },
-  "backgroundImage": null
+  "backgroundImage": "assets/house-plan-for-demo2.png"
 }

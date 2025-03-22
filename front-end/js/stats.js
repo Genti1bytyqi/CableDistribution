@@ -13,7 +13,7 @@ export function updateOriginalStats(layout) {
     <p>Total Weight: ${totalWeight}</p>
   `;
 }
-
+//TODO: Fix the problem with edges, totalWeight in originalStats ... done!
 export function updateOriginalStatsNodesAndEdges(totalEdges) {
   const statsDiv = document.getElementById("originalStats");
   const totalEdges1 = totalEdges.length;
