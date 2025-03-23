@@ -1,29 +1,40 @@
 import { updateOriginalStatsNodesAndEdges } from './stats.js';
 
-export function renderGraph(nodes, edges, containerSelector, isOptimized, shouldCenter = true, backgroundImage = null, isEditable = false) {
-  console.log(backgroundImage);
+export function renderGraph(
+  nodes,
+  edges,
+  containerSelector,
+  isOptimized,
+  shouldCenter = true,
+  backgroundImage = null,
+  isEditable = false
+) {
   const container = document.querySelector(containerSelector);
   container.innerHTML = "";
- 
+
   const width = 1068;
   const height = 500;
- 
+
+  // Clone nodes to avoid mutating original data
   const localNodes = nodes.map(n => ({ ...n }));
   if (shouldCenter) {
     centerNodes(localNodes, width, height);
   }
- 
+
+  // Prepare link data
   const linkData = edges.map(e => {
     const sourceNode = localNodes.find(n => n.id === e.from);
     const targetNode = localNodes.find(n => n.id === e.to);
     return { source: sourceNode, target: targetNode, cost: e.cost, edgeData: e };
   });
- 
+
+  // Create the main SVG
   const svg = d3.select(container)
     .append("svg")
     .attr("width", width)
     .attr("height", height);
- 
+
+  // Background image if provided
   if (backgroundImage) {
     svg.append("image")
       .attr("xlink:href", backgroundImage)
@@ -33,7 +44,8 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
       .attr("height", height)
       .attr("preserveAspectRatio", "xMidYMid meet");
   }
- 
+
+  // If editable, allow adding new nodes by clicking on empty space
   svg.append("rect")
     .attr("width", width)
     .attr("height", height)
@@ -44,20 +56,26 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
         const [x, y] = d3.pointer(event);
         const nodeName = prompt("Enter a name for the new node:", "Node " + (nodes.length + 1));
         if (nodeName === null) return;
+
+        // Use the global node type
+        const newNodeType = window.currentSelectedNodeType || "terminal";
+
+
         const newNode = {
           id: nodes.length,
           label: nodeName,
           x: x,
-          y: y
+          y: y,
+          type: newNodeType
         };
         nodes.push(newNode);
-        renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage, isEditable);
 
-        updateOriginalStatsNodesAndEdges(nodes);
+        renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage, isEditable,currentSelectedNodeType);
+        updateOriginalStatsNodesAndEdges(edges);
       }
     });
 
-  // Draw edges
+  // Draw edges as lines
   svg.append("g")
     .selectAll("line")
     .data(linkData)
@@ -70,7 +88,7 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
     .attr("stroke-width", 4)
     .attr("stroke", isOptimized ? "#4CAF50" : "#FF674D");
 
-  // Edge labels with click-to-edit functionality.
+  // Draw edge labels (click to edit)
   svg.append("g")
     .selectAll("text.edge-label")
     .data(linkData)
@@ -82,7 +100,7 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
     .attr("text-anchor", "middle")
     .attr("font-size", "12px")
     .text(d => d.cost)
-    .on("click", function (event, d) {
+    .on("click", function(event, d) {
       event.stopPropagation();
       const newCost = prompt("Enter new cost for the edge:", d.cost);
       if (newCost !== null && !isNaN(newCost)) {
@@ -93,57 +111,88 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
 
   let edgeStart = null;
 
-  // Draw nodes.
-  svg.append("g")
-    .selectAll("circle")
+  // Draw nodes (circle + icon)
+  const nodeGroups = svg.append("g")
+    .selectAll("g.node")
     .data(localNodes)
     .enter()
-    .append("circle")
-    .attr("cx", d => d.x)
-    .attr("cy", d => d.y)
-    .attr("r", 10)
-    .attr("fill", "#69b3a2")
-    .attr("stroke", "#2b6cb0")
-    .attr("stroke-width", 2)
-    .on("mousedown", function (event, d) {
+    .append("g")
+    .attr("class", "node")
+    .attr("transform", d => `translate(${d.x}, ${d.y})`)
+    .on("mousedown", function(event, d) {
       if (!event.altKey) {
         event.stopPropagation();
         edgeStart = d;
       }
     })
-    .on("mouseup", function (event, d) {
+    .on("mouseup", function(event, d) {
       if (!event.altKey && edgeStart && edgeStart.id !== d.id) {
         event.stopPropagation();
         const weight = prompt("Enter weight for the new edge:");
         if (weight !== null && !isNaN(weight)) {
           edges.push({ from: edgeStart.id, to: d.id, cost: +weight });
-          renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage);
+          renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage, isEditable);
         }
       }
       edgeStart = null;
     })
-    .on("click", function (event, d) {
+    .on("click", function(event, d) {
+      // Alt-click to remove node
       if (event.altKey) {
         event.stopPropagation();
         const nodeIndex = nodes.findIndex(n => n.id === d.id);
         if (nodeIndex > -1) {
           nodes.splice(nodeIndex, 1);
         }
+        // Remove edges connected to that node
         for (let i = edges.length - 1; i >= 0; i--) {
           if (edges[i].from === d.id || edges[i].to === d.id) {
             edges.splice(i, 1);
           }
         }
-        renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage);
+        renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage, isEditable);
       }
     })
-    .on("mouseover", function (event, d) {
-      d3.select(this).attr("fill", "#FFD700");
+    .on("mouseover", function() {
+      d3.select(this).select("circle").attr("fill", "#e0e0e0");
     })
-    .on("mouseout", function (event, d) {
-      d3.select(this).attr("fill", "#69b3a2");
+    .on("mouseout", function() {
+      d3.select(this).select("circle").attr("fill", "#ffffff");
     });
 
+  // Circle background
+  nodeGroups.append("circle")
+    .attr("r", 12)
+    .attr("fill", "#ffffff")
+    .attr("stroke", "#2b6cb0")
+    .attr("stroke-width", 1 );
+
+  // Icon in center
+  nodeGroups.append("image")
+    .attr("xlink:href", d => {
+      switch (d.type) {
+        case "powerSupply":
+          return "assets/main_power.png";
+        case "mainDistribution":
+          return "assets/distribution_panel.png";
+        case "junction":
+          return "assets/junction_symbol.png";
+        case "terminal":
+          return "assets/outlet_symbol.png";
+        case "light":
+          return "assets/light_symbol.webp";
+        case "switch":
+          return "assets/switch_symbol.png";
+        default:
+          return "assets/outlet_symbol.png";
+      }
+    })
+    .attr("width", 18)
+    .attr("height", 18)
+    .attr("x", -9)
+    .attr("y", -9);
+
+  // Node labels below the circle
   svg.append("g")
     .selectAll("text.node-label")
     .data(localNodes)
@@ -151,7 +200,7 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
     .append("text")
     .attr("class", "node-label")
     .attr("x", d => d.x)
-    .attr("y", d => d.y + 20)
+    .attr("y", d => d.y + 30)
     .attr("text-anchor", "middle")
     .attr("font-size", "12px")
     .text(d => d.label);

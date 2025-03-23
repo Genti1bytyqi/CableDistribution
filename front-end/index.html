@@ -16,6 +16,15 @@
         <div class="card shadow">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Original Layout</h4>
+            <div id="nodeTypeButtons" class="d-flex align-items-center" style="display:none; gap:10px; margin-left:10px;">
+              <!-- Each image is a button representing a different node type -->
+              <img src="assets/main_power.png"            data-nodetype="powerSupply"     class="node-type-button" style="width:24px; height:24px; cursor:pointer;" title="Power Supply" />
+              <img src="assets/distribution_panel.png"    data-nodetype="mainDistribution"class="node-type-button" style="width:24px; height:24px; cursor:pointer;" title="Main Distribution" />
+              <img src="assets/junction_symbol.png"       data-nodetype="junction"       class="node-type-button" style="width:24px; height:24px; cursor:pointer;" title="Junction" />
+              <img src="assets/outlet_symbol.png"         data-nodetype="terminal"       class="node-type-button" style="width:24px; height:24px; cursor:pointer;" title="Outlet (Terminal)" />
+              <img src="assets/light_symbol.webp"         data-nodetype="light"          class="node-type-button" style="width:24px; height:24px; cursor:pointer;" title="Light" />
+              <img src="assets/switch_symbol.png"         data-nodetype="switch"         class="node-type-button" style="width:24px; height:24px; cursor:pointer;" title="Switch" />
+            </div>
             <div id="customLayoutControls" style="display:none; margin-right: 10px;">
               <input type="file" id="floorPlanInput" accept="image/*">
             </div>
@@ -52,7 +61,8 @@
             <button class="btn btn-primary" id="saveSVGBtn">Save as SVG</button>
           </div>
         </div>
-      </div>  
+      </div>
+  
     </div>
   </div>
 

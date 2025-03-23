@@ -1,4 +1,3 @@
-
 export function updateOriginalStats(layout) {
   const statsDiv = document.getElementById("originalStats");
   if (!layout) {
