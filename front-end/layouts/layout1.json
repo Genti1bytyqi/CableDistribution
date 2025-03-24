@@ -1,39 +1,30 @@
 {
   "nodes": [
-    {
-      "id": 0,
-      "label": "Distribution Panel",
-      "x": 60,
-      "y": 100,
-      "type": "mainDistribution"
-    },
+    { "id": 0,  "label": "Distribution Panel", "x": 280, "y": 100 },
+    { "id": 1,  "label": "Bedroom Switch",     "x": 240, "y": 220 },
+    { "id": 2,  "label": "Bedroom Outlet",     "x": 280, "y": 270 },
+    { "id": 3,  "label": "Bedroom Light",      "x": 260, "y": 250 },
 
-    { "id": 1,  "label": "Bathroom Switch",    "x": 110, "y": 140, "type": "switch"   },
-    { "id": 2,  "label": "Bathroom Outlet",    "x": 120, "y": 100, "type": "terminal" },
-    { "id": 3,  "label": "Bathroom Light",     "x": 140, "y": 120, "type": "light"    },
+    { "id": 4,  "label": "Bathroom Switch",    "x": 310, "y": 150 },
+    { "id": 5,  "label": "Bathroom Outlet",    "x": 330, "y": 110 },
+    { "id": 6,  "label": "Bathroom Light",     "x": 350, "y": 140 },
 
-    { "id": 4,  "label": "Living Room Switch", "x": 350, "y": 140, "type": "switch"   },
-    { "id": 5,  "label": "Living Room Outlet", "x": 390, "y": 140, "type": "terminal" },
-    { "id": 6,  "label": "Living Room Light",  "x": 380, "y": 180, "type": "light"    },
+    { "id": 7,  "label": "Kitchen Switch",     "x": 330, "y": 310 },
+    { "id": 8,  "label": "Kitchen Outlet",     "x": 370, "y": 310 },
+    { "id": 9,  "label": "Kitchen Light",      "x": 350, "y": 340 },
 
-    { "id": 7,  "label": "Kitchen Switch",     "x": 220, "y": 220, "type": "switch"   },
-    { "id": 8,  "label": "Kitchen Outlet",     "x": 260, "y": 220, "type": "terminal" },
-    { "id": 9,  "label": "Kitchen Light",      "x": 240, "y": 250, "type": "light"    },
-
-    { "id": 10, "label": "Bedroom Switch",     "x": 120, "y": 300, "type": "switch"   },
-    { "id": 11, "label": "Bedroom Outlet",     "x": 150, "y": 310, "type": "terminal" },
-    { "id": 12, "label": "Bedroom Light",      "x": 140, "y": 330, "type": "light"    }
+    { "id": 10, "label": "Living Room Switch", "x": 500, "y": 200 },
+    { "id": 11, "label": "Living Room Outlet", "x": 540, "y": 200 },
+    { "id": 12, "label": "Living Room Light",  "x": 520, "y": 240 }
   ],
   "edges": [
-    { "from": 0,  "to": 1,  "cost": 3 },
-    { "from": 0,  "to": 4,  "cost": 3 },
-    { "from": 0,  "to": 7,  "cost": 4 },
-    { "from": 0,  "to": 10, "cost": 4 },
-
-    { "from": 1,  "to": 2,  "cost": 2 },
+    { "from": 0,  "to": 1,  "cost": 2 },
+    { "from": 1,  "to": 2,  "cost": 3 },
     { "from": 1,  "to": 3,  "cost": 1 },
-    { "from": 4,  "to": 5,  "cost": 2 },
+    { "from": 0,  "to": 4,  "cost": 2 },
+    { "from": 4,  "to": 5,  "cost": 3 },
     { "from": 4,  "to": 6,  "cost": 1 },
+    { "from": 0,  "to": 7,  "cost": 4 },
     { "from": 7,  "to": 8,  "cost": 2 },
     { "from": 7,  "to": 9,  "cost": 1 },
     { "from": 10, "to": 11, "cost": 2 },
@@ -42,5 +33,5 @@
   "constraints": {
     "maxCableCost": 15
   },
-  "backgroundImage": "assets/floor_one(252.5,3.35).jpg"
+  "backgroundImage": "assets/floor_one[783,641](252.5,3.35).jpg"
 }

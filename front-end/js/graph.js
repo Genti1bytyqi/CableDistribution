@@ -1,45 +1,43 @@
 import { updateOriginalStatsNodesAndEdges } from './stats.js';
+import { parseFloorPlanFilename } from './main.js'
 
 export function renderGraph(
   nodes,
   edges,
   containerSelector,
   isOptimized,
-  shouldCenter = true,
-  backgroundImage = null,
-  isEditable = false
+  backgroundImage,
+  isEditable = false,
+  layout
 ) {
   const container = document.querySelector(containerSelector);
   container.innerHTML = "";
 
-  const width = 1068;
-  const height = 500;
+  const width = layout.imageWidth || 1068;
+  const height = layout.imageHeight || 500;
+  const ratio = layout.scaleMetersPerPixel || 1;
 
-  // Clone nodes to avoid mutating original data
+  console.log("backgroundImage", backgroundImage);
+  console.log("width", width);
+  console.log("height", height);
+  console.log("ratio", ratio);
+
   const localNodes = nodes.map(n => ({ ...n }));
-  if (shouldCenter) {
-    centerNodes(localNodes, width, height);
-  }
 
-  // Prepare link data
   const linkData = edges.map(e => {
     const sourceNode = localNodes.find(n => n.id === e.from);
     const targetNode = localNodes.find(n => n.id === e.to);
     return { source: sourceNode, target: targetNode, cost: e.cost, edgeData: e };
   });
 
-  // Create the main SVG
   const svg = d3.select(container)
     .append("svg")
     .attr("width", width)
     .attr("height", height);
 
-  // Background image if provided
   if (backgroundImage) {
     svg.append("image")
       .attr("xlink:href", backgroundImage)
-      .attr("x", 0)
-      .attr("y", 0)
       .attr("width", width)
       .attr("height", height)
       .attr("preserveAspectRatio", "xMidYMid meet");
@@ -57,10 +55,7 @@ export function renderGraph(
         const nodeName = prompt("Enter a name for the new node:", "Node " + (nodes.length + 1));
         if (nodeName === null) return;
 
-        // Use the global node type
         const newNodeType = window.currentSelectedNodeType || "terminal";
-
-
         const newNode = {
           id: nodes.length,
           label: nodeName,
@@ -70,11 +65,9 @@ export function renderGraph(
         };
         nodes.push(newNode);
 
-        renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage, isEditable,currentSelectedNodeType);
-        updateOriginalStatsNodesAndEdges(edges);
+        renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
       }
     });
-
   // Draw edges as lines
   svg.append("g")
     .selectAll("line")
@@ -125,13 +118,18 @@ export function renderGraph(
         edgeStart = d;
       }
     })
-    .on("mouseup", function(event, d) {
-      if (!event.altKey && edgeStart && edgeStart.id !== d.id) {
+
+    .on("mouseup", function(event, edgeEnd) {
+      if (!event.altKey && edgeStart && edgeStart.id !== edgeEnd.id) {
         event.stopPropagation();
-        const weight = prompt("Enter weight for the new edge:");
-        if (weight !== null && !isNaN(weight)) {
-          edges.push({ from: edgeStart.id, to: d.id, cost: +weight });
-          renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage, isEditable);
+        // const weight = prompt("Enter weight for the new edge:");
+        console.log("ratio", ratio);
+        console.log("edgeStart x=" + edgeStart.x + ", y=" + edgeStart.y);
+        // const weight = 0 //calculate weight
+        const weight = ratio //calculate weight
+        if (weight) {
+          edges.push({ from: edgeStart.id, to: edgeEnd.id, cost: +weight });
+          renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
         }
       }
       edgeStart = null;
@@ -150,7 +148,7 @@ export function renderGraph(
             edges.splice(i, 1);
           }
         }
-        renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage, isEditable);
+        renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable,layout);
       }
     })
     .on("mouseover", function() {
@@ -204,24 +202,6 @@ export function renderGraph(
     .attr("text-anchor", "middle")
     .attr("font-size", "12px")
     .text(d => d.label);
-}
-
-function centerNodes(localNodes, svgWidth, svgHeight) {
-  const minX = d3.min(localNodes, d => d.x);
-  const maxX = d3.max(localNodes, d => d.x);
-  const minY = d3.min(localNodes, d => d.y);
-  const maxY = d3.max(localNodes, d => d.y);
-
-  const graphWidth = maxX - minX;
-  const graphHeight = maxY - minY;
-
-  if (graphWidth === 0 || graphHeight === 0) return;
-
-  const offsetX = (svgWidth - graphWidth) / 2 - minX;
-  const offsetY = (svgHeight - graphHeight) / 2 - minY;
-
-  localNodes.forEach(n => {
-    n.x += offsetX;
-    n.y += offsetY;
-  });
+  
+    updateOriginalStatsNodesAndEdges(nodes, edges);
 }

@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <title>Building Cable Distribution Optimizer</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+  <link rel="stylesheet" href="css/bootstrap.min.css">
   <link rel="stylesheet" href="css/styles.css" />
-  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <!-- <script src="https://d3js.org/d3.v6.min.js"></script> -->
+  <script src="d3/d3.v6.min.js"></script>
 </head>
 <body>
   <div class="container my-4">
@@ -17,7 +19,6 @@
           <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Original Layout</h4>
             <div id="nodeTypeButtons" class="d-flex align-items-center" style="display:none; gap:10px; margin-left:10px;">
-              <!-- Each image is a button representing a different node type -->
               <img src="assets/main_power.png"            data-nodetype="powerSupply"     class="node-type-button" style="width:24px; height:24px; cursor:pointer;" title="Power Supply" />
               <img src="assets/distribution_panel.png"    data-nodetype="mainDistribution"class="node-type-button" style="width:24px; height:24px; cursor:pointer;" title="Main Distribution" />
               <img src="assets/junction_symbol.png"       data-nodetype="junction"       class="node-type-button" style="width:24px; height:24px; cursor:pointer;" title="Junction" />
@@ -37,7 +38,7 @@
               <option value="layouts/custom.json">Custom Layout</option>
             </select>            
           </div>
-          <div class="card-body">
+          <div class="card-body d-flex justify-content-center align-items-center">
             <div id="originalGraphContainer" class="graph-container"></div>
           </div>
            <div class="card-footer d-flex justify-content-between align-items-center">
@@ -52,7 +53,7 @@
           <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Optimized Layout</h4>
           </div>
-          <div class="card-body">
+          <div class="card-body d-flex justify-content-center align-items-center">
             <div id="optimizedGraphContainer" class="graph-container"></div>
           </div>
           <div class="card-footer d-flex justify-content-between align-items-center">

@@ -13,15 +13,35 @@ export function updateOriginalStats(layout) {
   `;
 }
 
-export function updateOriginalStatsNodesAndEdges(totalEdges) {
+export function updateOriginalStatsNodesAndEdges(totalNodes, totalEdges) {
   const statsDiv = document.getElementById("originalStats");
-  const totalEdges1 = totalEdges.length;
-  const totalWeight1 = totalEdges.reduce((sum, e) => sum + e.cost, 0);
+  
+  // Basic counts
+  const totalNodeCount = totalNodes.length;
+  const totalEdgeCount = totalEdges.length;
+  const totalWeight = totalEdges.reduce((sum, e) => sum + e.cost, 0);
 
+  // Count how many nodes per type
+  const typeCounts = {};
+  totalNodes.forEach(node => {
+    const t = node.type || "Unknown";
+    if (!typeCounts[t]) {
+      typeCounts[t] = 0;
+    }
+    typeCounts[t]++;
+  });
+
+  // Build an HTML snippet listing each type count
+  let typeCountsHtml = "";
+  for (const [type, count] of Object.entries(typeCounts)) {
+    typeCountsHtml += `${type}: ${count}&emsp; `;
+  }
+  // Render the final stats
   statsDiv.innerHTML = `
     <h3>Original Configuration</h3>
-    <p>Total Edges: ${totalEdges1}</p>
-    <p>Total Weight: ${totalWeight1}</p>
+    <p>Total Nodes: ${totalNodeCount}&emsp; ${typeCountsHtml}</p>
+    <p>Total Edges: ${totalEdgeCount}</p>
+    <p>Total Weight: ${totalWeight}</p>
   `;
 }
 

@@ -35,9 +35,9 @@ export function selectLayout(layoutFile) {
         selectedLayout.edges,
         "#originalGraphContainer",
         false,
-        true,  // center if desired
         selectedLayout.backgroundImage,
-        isEditable
+        isEditable,
+        selectedLayout
       );
       updateOriginalStats(selectedLayout);
 
@@ -59,13 +59,11 @@ function optimizeSelectedLayout() {
     allEdges = autoEdges;
   }
 
-  // 2) Build a temporary layout object for MST
   const layoutForMST = {
     ...selectedLayout,
     edges: allEdges
   };
 
-  // 3) Call your MST API
   fetch('/api/optimize', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -81,9 +79,9 @@ function optimizeSelectedLayout() {
         optimizedEdges,
         "#optimizedGraphContainer",
         true,
-        true,
         selectedLayout.backgroundImage,
-        false 
+        false,
+        selectedLayout
       );
       updateOptimizedStats(optimizedEdges);
     })
@@ -151,9 +149,10 @@ document.addEventListener("DOMContentLoaded", function () {
       const file = event.target.files[0];
       if (file && selectedLayout && selectedLayout.name === "Custom Layout") {
 
-        // Attempt to parse (pixels, meters) from filename
-        let ratio = parseFloorPlanFilename(file.name);
-
+        const floorplanMetadata = parseFloorPlanFilename(file.name);
+        let ratio = floorplanMetadata.ratio;
+        let customWidth = floorplanMetadata.width;
+        let customHeight = floorplanMetadata.height;
         // If no ratio found, prompt user
         if (!ratio) {
           const px = parseFloat(prompt("Enter the pixel measurement (e.g. 252.5):", "200"));
@@ -165,36 +164,34 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         }
 
-        // Store the ratio in layout
-        selectedLayout.scaleMetersPerPixel = ratio;
+        selectedLayout.scaleMetersPerPixel = ratio || 1;
+        selectedLayout.imageWidth = customWidth || 1068;  
+        selectedLayout.imageHeight = customHeight || 500;  
         console.log("scaleMetersPerPixel:", ratio);
 
-        // Read the image as data URL
         const reader = new FileReader();
         reader.onload = function (e) {
           selectedLayout.backgroundImage = e.target.result;
 
-          // Render the original container with no edges
           renderGraph(
             selectedLayout.nodes,
             selectedLayout.edges,
             "#originalGraphContainer",
             false,
-            true,
             selectedLayout.backgroundImage,
-            true 
+            true,
+            selectedLayout
           );
 
-          // If there's an existing MST, re-render it
           if (optimizedEdges) {
             renderGraph(
               selectedLayout.nodes,
               optimizedEdges,
               "#optimizedGraphContainer",
               true,
-              false,
               selectedLayout.backgroundImage,
-              false
+              false,
+              selectedLayout
             );
           }
         };
@@ -209,24 +206,47 @@ document.addEventListener("DOMContentLoaded", function () {
       window.currentSelectedNodeType = btn.dataset.nodetype;
       console.log("Selected node type:", window.currentSelectedNodeType);
 
-      // 2) (Optional) Highlight the chosen button
       nodeTypeButtons.forEach(b => b.style.border = "none");
       btn.style.border = "2px solid #007bff"; // highlight in blue
     });
   });
 });
 
-function parseFloorPlanFilename(fileName) {
-  const pattern = /\(([\d.]+)\s*,\s*([\d.]+)\)/;
-  const match = fileName.match(pattern);
-  if (match) {
-    const pixels = parseFloat(match[1]);
-    const meters = parseFloat(match[2]);
-    if (!isNaN(pixels) && !isNaN(meters) && pixels > 0 && meters > 0) {
-      return meters / pixels; // ratio: meters per pixel
+export function parseFloorPlanFilename(fileName) {
+  // Pattern for [width, height]
+  const dimensionPattern = /\[([\d.]+)\s*,\s*([\d.]+)\]/;
+
+  // Pattern for (pixels, meters)
+  const ratioPattern = /\(([\d.]+)\s*,\s*([\d.]+)\)/;
+
+  let width = null;
+  let height = null;
+  let ratio = null;
+
+  const dimMatch = fileName.match(dimensionPattern);
+  if (dimMatch) {
+    const w = parseFloat(dimMatch[1]);
+    const h = parseFloat(dimMatch[2]);
+    if (!isNaN(w) && !isNaN(h) && w > 0 && h > 0) {
+      width = w;
+      height = h;
     }
   }
-  return null;
+  const ratioMatch = fileName.match(ratioPattern);
+  if (ratioMatch) {
+    const pixels = parseFloat(ratioMatch[1]);
+    const meters = parseFloat(ratioMatch[2]);
+    if (!isNaN(pixels) && !isNaN(meters) && pixels > 0 && meters > 0) {
+      // pixels per meter
+      ratio = pixels / meters;
+    }
+  }
+
+  console.log("INSIDE PARSE")
+  console.log("width:", width);
+  console.log("height:", height);
+  console.log("ratio:", ratio);
+  return { width, height, ratio };
 }
 
 function createNearestNeighborEdges(nodes, scale = 1) {
@@ -244,6 +264,8 @@ function createNearestNeighborEdges(nodes, scale = 1) {
       const dx = nodeA.x - nodeB.x;
       const dy = nodeA.y - nodeB.y;
       const pixelDistance = Math.sqrt(dx * dx + dy * dy);
+
+      console.log("pixelDistance:", pixelDistance)
       if (pixelDistance < minDist) {
         minDist = pixelDistance;
         nearestNode = nodeB;
@@ -251,14 +273,11 @@ function createNearestNeighborEdges(nodes, scale = 1) {
     }
 
     if (nearestNode) {
-      // Avoid duplicates (A->B, B->A)
       const key = [Math.min(nodeA.id, nearestNode.id), Math.max(nodeA.id, nearestNode.id)].join("-");
       if (!usedPairs.has(key)) {
         usedPairs.add(key);
 
-        // Convert pixel distance to meters using scale
-        const realDistance = minDist * scale;
-        // Round or keep decimals as needed
+        const realDistance = minDist / scale;
         const cost = parseFloat(realDistance.toFixed(2));
 
         newEdges.push({
@@ -271,3 +290,4 @@ function createNearestNeighborEdges(nodes, scale = 1) {
   }
   return newEdges;
 }
+
