@@ -1,44 +1,49 @@
 import { updateOriginalStatsNodesAndEdges } from './stats.js';
+import { parseFloorPlanFilename } from './main.js'
 
-export function renderGraph(nodes, edges, containerSelector, isOptimized, shouldCenter = true, backgroundImage = null, isEditable = false) {
-  console.log(backgroundImage);
+export function renderGraph(
+  nodes,
+  edges,
+  containerSelector,
+  isOptimized,
+  backgroundImage,
+  isEditable = false,
+  layout
+) {
   const container = document.querySelector(containerSelector);
   container.innerHTML = "";
 
-  const width = 1068;
-  const height = 500;
+  const width = layout.imageWidth || 1068;
+  const height = layout.imageHeight || 500;
+  const ratio = layout.scaleMetersPerPixel || 1;
 
-  // Clone nodes so we don't modify the original
+  console.log("backgroundImage", backgroundImage);
+  console.log("width", width);
+  console.log("height", height);
+  console.log("ratio", ratio);
+
   const localNodes = nodes.map(n => ({ ...n }));
-  if (shouldCenter) {
-    centerNodes(localNodes, width, height);
-  }
 
-  // Create link data by matching node IDs
   const linkData = edges.map(e => {
     const sourceNode = localNodes.find(n => n.id === e.from);
     const targetNode = localNodes.find(n => n.id === e.to);
     return { source: sourceNode, target: targetNode, cost: e.cost, edgeData: e };
   });
 
-  // Create the main SVG element
   const svg = d3.select(container)
     .append("svg")
     .attr("width", width)
     .attr("height", height);
 
-  // Add background image if provided
   if (backgroundImage) {
     svg.append("image")
       .attr("xlink:href", backgroundImage)
-      .attr("x", 0)
-      .attr("y", 0)
       .attr("width", width)
       .attr("height", height)
       .attr("preserveAspectRatio", "xMidYMid meet");
   }
 
-  // Allow creating new nodes when the layout is editable
+  // If editable, allow adding new nodes by clicking on empty space
   svg.append("rect")
     .attr("width", width)
     .attr("height", height)
@@ -49,19 +54,20 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
         const [x, y] = d3.pointer(event);
         const nodeName = prompt("Enter a name for the new node:", "Node " + (nodes.length + 1));
         if (nodeName === null) return;
+
+        const newNodeType = window.currentSelectedNodeType || "terminal";
         const newNode = {
           id: nodes.length,
           label: nodeName,
           x: x,
           y: y,
-          type: "terminal" // default type; you can adjust this as needed
+          type: newNodeType
         };
         nodes.push(newNode);
-        renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage, isEditable);
-        updateOriginalStatsNodesAndEdges(edges);
+
+        renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
       }
     });
-
   // Draw edges as lines
   svg.append("g")
     .selectAll("line")
@@ -75,7 +81,8 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
     .attr("stroke-width", 4)
     .attr("stroke", isOptimized ? "#4CAF50" : "#FF674D");
 
-  // Draw edge labels with click-to-edit functionality
+
+  // Draw edge labels (click to edit)
   svg.append("g")
     .selectAll("text.edge-label")
     .data(linkData)
@@ -98,16 +105,73 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
 
   let edgeStart = null;
 
-  // Draw nodes using images directly
-  svg.append("g")
-    .selectAll("image")
+  // Draw nodes (circle + icon)
+  const nodeGroups = svg.append("g")
+    .selectAll("g.node")
     .data(localNodes)
     .enter()
-    .append("image")
+    .append("g")
+    .attr("class", "node")
+    .attr("transform", d => `translate(${d.x}, ${d.y})`)
+    .on("mousedown", function(event, d) {
+      if (!event.altKey) {
+        event.stopPropagation();
+        edgeStart = d;
+      }
+    })
+
+    .on("mouseup", function(event, edgeEnd) {
+      if (!event.altKey && edgeStart && edgeStart.id !== edgeEnd.id) {
+        event.stopPropagation();
+        // const weight = prompt("Enter weight for the new edge:");
+        console.log("ratio", ratio);
+        console.log("edgeStart x=" + edgeStart.x + ", y=" + edgeStart.y);
+        // const weight = 0 //calculate weight
+        const weight = ratio //calculate weight
+        if (weight) {
+          edges.push({ from: edgeStart.id, to: edgeEnd.id, cost: +weight });
+          renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
+        }
+      }
+      edgeStart = null;
+    })
+    .on("click", function(event, d) {
+      // Alt-click to remove node
+      if (event.altKey) {
+        event.stopPropagation();
+        const nodeIndex = nodes.findIndex(n => n.id === d.id);
+        if (nodeIndex > -1) {
+          nodes.splice(nodeIndex, 1);
+        }
+        // Remove edges connected to that node
+        for (let i = edges.length - 1; i >= 0; i--) {
+          if (edges[i].from === d.id || edges[i].to === d.id) {
+            edges.splice(i, 1);
+          }
+        }
+        renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable,layout);
+      }
+    })
+    .on("mouseover", function() {
+      d3.select(this).select("circle").attr("fill", "#e0e0e0");
+    })
+    .on("mouseout", function() {
+      d3.select(this).select("circle").attr("fill", "#ffffff");
+    });
+
+  // Circle background
+  nodeGroups.append("circle")
+    .attr("r", 12)
+    .attr("fill", "#ffffff")
+    .attr("stroke", "#2b6cb0")
+    .attr("stroke-width", 1 );
+
+  // Icon in center
+  nodeGroups.append("image")
     .attr("xlink:href", d => {
       switch (d.type) {
         case "powerSupply":
-          return "assets/main_distribution.webp";
+          return "assets/main_power.png";
         case "mainDistribution":
           return "assets/distribution_panel.png";
         case "junction":
@@ -122,51 +186,12 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
           return "assets/outlet_symbol.png";
       }
     })
-    .attr("width", 30)    // Adjust size as needed
-    .attr("height", 30)
-    .attr("x", d => d.x - 12) // Center image horizontally
-    .attr("y", d => d.y - 12) // Center image vertically
-    .on("mousedown", function(event, d) {
-      if (!event.altKey) {
-        event.stopPropagation();
-        edgeStart = d;
-      }
-    })
-    .on("mouseup", function(event, d) {
-      if (!event.altKey && edgeStart && edgeStart.id !== d.id) {
-        event.stopPropagation();
-        const weight = prompt("Enter weight for the new edge:");
-        if (weight !== null && !isNaN(weight)) {
-          edges.push({ from: edgeStart.id, to: d.id, cost: +weight });
-          renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage);
-        }
-      }
-      edgeStart = null;
-    })
-    .on("click", function(event, d) {
-      if (event.altKey) {
-        event.stopPropagation();
-        const nodeIndex = nodes.findIndex(n => n.id === d.id);
-        if (nodeIndex > -1) {
-          nodes.splice(nodeIndex, 1);
-        }
-        // Remove edges connected to the deleted node
-        for (let i = edges.length - 1; i >= 0; i--) {
-          if (edges[i].from === d.id || edges[i].to === d.id) {
-            edges.splice(i, 1);
-          }
-        }
-        renderGraph(nodes, edges, containerSelector, isOptimized, false, backgroundImage);
-      }
-    })
-    .on("mouseover", function(event, d) {
-      d3.select(this).attr("opacity", 0.8);
-    })
-    .on("mouseout", function(event, d) {
-      d3.select(this).attr("opacity", 1);
-    });
+    .attr("width", 18)
+    .attr("height", 18)
+    .attr("x", -9)
+    .attr("y", -9);
 
-  // Draw node labels
+  // Node labels below the circle
   svg.append("g")
     .selectAll("text.node-label")
     .data(localNodes)
@@ -174,28 +199,10 @@ export function renderGraph(nodes, edges, containerSelector, isOptimized, should
     .append("text")
     .attr("class", "node-label")
     .attr("x", d => d.x)
-    .attr("y", d => d.y + 20)
+    .attr("y", d => d.y + 30)
     .attr("text-anchor", "middle")
     .attr("font-size", "12px")
     .text(d => d.label);
-}
-
-function centerNodes(localNodes, svgWidth, svgHeight) {
-  const minX = d3.min(localNodes, d => d.x);
-  const maxX = d3.max(localNodes, d => d.x);
-  const minY = d3.min(localNodes, d => d.y);
-  const maxY = d3.max(localNodes, d => d.y);
-
-  const graphWidth = maxX - minX;
-  const graphHeight = maxY - minY;
-
-  if (graphWidth === 0 || graphHeight === 0) return;
-
-  const offsetX = (svgWidth - graphWidth) / 2 - minX;
-  const offsetY = (svgHeight - graphHeight) / 2 - minY;
-
-  localNodes.forEach(n => {
-    n.x += offsetX;
-    n.y += offsetY;
-  });
+  
+    updateOriginalStatsNodesAndEdges(nodes, edges);
 }

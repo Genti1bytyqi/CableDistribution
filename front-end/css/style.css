@@ -34,7 +34,7 @@ h1 {
 
 .card {
   flex: 1;
-  min-width: 300px;
+  min-width: 301px;
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 6px;
