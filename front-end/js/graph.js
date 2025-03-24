@@ -93,7 +93,10 @@ export function renderGraph(
     .attr("y", d => ((d.source.y + d.target.y) / 2) - 5)
     .attr("text-anchor", "middle")
     .attr("font-size", "12px")
-    .text(d => d.cost)
+    .text(d =>{
+      if (!isOptimized) return "";            // hide in original graph
+      return parseFloat(d.cost).toFixed(2);
+    })
     .on("click", function(event, d) {
       event.stopPropagation();
       const newCost = prompt("Enter new cost for the edge:", d.cost);
