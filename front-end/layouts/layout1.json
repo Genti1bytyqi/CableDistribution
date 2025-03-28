@@ -1,37 +1,69 @@
 {
   "nodes": [
-    { "id": 0,  "label": "Distribution Panel", "x": 280, "y": 100 },
-    { "id": 1,  "label": "Bedroom Switch",     "x": 240, "y": 220 },
-    { "id": 2,  "label": "Bedroom Outlet",     "x": 280, "y": 270 },
-    { "id": 3,  "label": "Bedroom Light",      "x": 260, "y": 250 },
+    { "id": 0,  "label": "", "x": 810,  "y": 200,  "type": "powerSupply" },
+    { "id": 1,  "label": "", "x": 600, "y": 270, "type": "mainDistribution" },
 
-    { "id": 4,  "label": "Bathroom Switch",    "x": 310, "y": 150 },
-    { "id": 5,  "label": "Bathroom Outlet",    "x": 330, "y": 110 },
-    { "id": 6,  "label": "Bathroom Light",     "x": 350, "y": 140 },
+    { "id": 2,  "label": "", "x": 800, "y": 100, "type": "junction" },
+    { "id": 3,  "label": "", "x": 500, "y": 270, "type": "junction" },
+    { "id": 4,  "label": "", "x": 525, "y": 180,  "type": "junction" },
+    { "id": 5,  "label": "", "x": 525, "y": 300,  "type": "junction" },
 
-    { "id": 7,  "label": "Kitchen Switch",     "x": 330, "y": 310 },
-    { "id": 8,  "label": "Kitchen Outlet",     "x": 370, "y": 310 },
-    { "id": 9,  "label": "Kitchen Light",      "x": 350, "y": 340 },
+    
+    { "id": 6,  "label": "", "x": 800, "y": 145, "type": "terminal" },
+    { "id": 7,  "label": "", "x": 700, "y": 35, "type": "terminal" },
+    { "id": 8,  "label": "", "x": 540, "y": 120, "type": "terminal" },
+    { "id": 9,  "label": "", "x": 700, "y": 240, "type": "terminal" },
+    { "id": 10,  "label": "", "x": 740, "y": 240, "type": "switch" },
+    { "id": 11,  "label": "", "x": 675, "y": 145, "type": "light" },
+    
 
-    { "id": 10, "label": "Living Room Switch", "x": 500, "y": 200 },
-    { "id": 11, "label": "Living Room Outlet", "x": 540, "y": 200 },
-    { "id": 12, "label": "Living Room Light",  "x": 520, "y": 240 }
+    { "id": 12, "label": "", "x": 525, "y": 155, "type": "switch" },
+    { "id": 13, "label": "", "x": 380, "y": 35, "type": "terminal" },
+    { "id": 14, "label": "", "x": 265, "y": 220, "type": "terminal" },
+    { "id": 15, "label": "", "x": 275, "y": 280, "type": "terminal" },
+    { "id": 16, "label": "", "x": 400, "y": 150, "type": "light" },
+    { "id": 17, "label": "", "x": 400, "y": 270, "type": "switch" },
+    { "id": 18, "label": "", "x": 330, "y": 300, "type": "light" },
+
+
+    { "id": 19, "label": "", "x": 466, "y": 370, "type": "light" },
+    { "id": 20, "label": "", "x": 525, "y": 330, "type": "switch" },
+
+    { "id": 21, "label": "", "x": 600, "y": 400, "type": "terminal"}
   ],
   "edges": [
-    { "from": 0,  "to": 1,  "cost": 2 },
-    { "from": 1,  "to": 2,  "cost": 3 },
-    { "from": 1,  "to": 3,  "cost": 1 },
-    { "from": 0,  "to": 4,  "cost": 2 },
-    { "from": 4,  "to": 5,  "cost": 3 },
-    { "from": 4,  "to": 6,  "cost": 1 },
-    { "from": 0,  "to": 7,  "cost": 4 },
-    { "from": 7,  "to": 8,  "cost": 2 },
-    { "from": 7,  "to": 9,  "cost": 1 },
-    { "from": 10, "to": 11, "cost": 2 },
-    { "from": 10, "to": 12, "cost": 1 }
+    { "from": 0, "to": 1,  "cost": 1 },
+    { "from": 1, "to": 2,  "cost": 1 },
+    { "from": 1, "to": 3,  "cost": 1 },
+    { "from": 1, "to": 4,  "cost": 1 },
+    { "from": 1, "to": 5,  "cost": 1 },
+
+    { "from": 2, "to": 6,  "cost": 2.4 },
+    { "from": 2, "to": 7,  "cost": 2.3 },
+    { "from": 2, "to": 8,  "cost": 2.5 },
+    { "from": 2, "to": 9,  "cost": 2.7 },
+    { "from": 2, "to": 10,  "cost": 2.8 },
+    { "from": 10, "to": 11,  "cost": 2.9 },
+
+    { "from": 4, "to": 12,  "cost": 3 },
+    { "from": 4, "to": 13,  "cost": 3 },
+    { "from": 3, "to": 14,  "cost": 3.5 },
+    { "from": 3, "to": 15,  "cost": 3.7 },
+    { "from": 3, "to": 17, "cost": 4 },
+    { "from": 12, "to": 16,  "cost": 5 },
+    { "from": 13, "to": 14,  "cost": 4.7 },
+    { "from": 14, "to": 15,  "cost": 3.2 },
+    { "from": 17,"to": 18,  "cost": 3.6 },
+
+    { "from": 5,"to": 20,  "cost": 1 },
+    { "from": 20,"to": 19,  "cost": 1 },
+    { "from": 5,"to": 21,  "cost": 4 },
+    { "from": 1,"to": 21,  "cost": 5 }
+
+    
   ],
   "constraints": {
     "maxCableCost": 15
   },
-  "backgroundImage": "assets/floor_one[783,641](252.5,3.35).jpg"
+  "backgroundImage": "./assets/floor_one[783,641](252.5,3.35).jpg"
 }
