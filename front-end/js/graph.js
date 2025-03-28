@@ -207,5 +207,9 @@ export function renderGraph(
     .attr("font-size", "12px")
     .text(d => d.label);
   
-    updateOriginalStatsNodesAndEdges(nodes, edges);
+    //updateOriginalStatsNodesAndEdges(nodes, edges);
+
+    if (!isOptimized) {
+      updateOriginalStatsNodesAndEdges(nodes, edges);
+    }
 }

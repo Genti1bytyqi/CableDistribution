@@ -4,10 +4,12 @@ export function updateOriginalStats(layout) {
     statsDiv.innerHTML = "";
     return;
   }
+  const totalNodes = layout.nodes.length;
   const totalEdges = layout.edges.length;
-  const totalWeight = layout.edges.reduce((sum, e) => sum + e.cost, 0);
+  const totalWeight = layout.edges.reduce((sum, e) => sum + e.cost, 0).toFixed(2);
   statsDiv.innerHTML = `
     <h3>Original Configuration</h3>
+    <p>Total Nodes: ${totalNodes}</p>
     <p>Total Edges: ${totalEdges}</p>
     <p>Total Weight: ${totalWeight}</p>
   `;
@@ -19,7 +21,7 @@ export function updateOriginalStatsNodesAndEdges(totalNodes, totalEdges) {
   // Basic counts
   const totalNodeCount = totalNodes.length;
   const totalEdgeCount = totalEdges.length;
-  const totalWeight = totalEdges.reduce((sum, e) => sum + e.cost, 0);
+  const totalWeight = totalEdges.reduce((sum, e) => sum + e.cost, 0).toFixed(2);
 
   // Count how many nodes per type
   const typeCounts = {};
@@ -45,16 +47,31 @@ export function updateOriginalStatsNodesAndEdges(totalNodes, totalEdges) {
   `;
 }
 
-export function updateOptimizedStats(optimizedEdges) {
+export function updateOptimizedStats(totalNodes,optimizedEdges) {
   const statsDiv = document.getElementById("optimizedStats");
   if (!optimizedEdges) {
     statsDiv.innerHTML = "";
     return;
   }
+  const totalNodeCount = totalNodes.length;
   const totalEdges = optimizedEdges.length;
-  const totalWeight = optimizedEdges.reduce((sum, e) => sum + e.cost, 0);
+  const totalWeight = optimizedEdges.reduce((sum, e) => sum + e.cost, 0).toFixed(2);
+
+  const typeCounts = {};
+  totalNodes.forEach(node => {
+    const t = node.type || "Unknown";
+    if (!typeCounts[t]) {
+      typeCounts[t] = 0;
+    }
+    typeCounts[t]++;
+  });
+  let typeCountsHtml = "";
+  for (const [type, count] of Object.entries(typeCounts)) {
+    typeCountsHtml += `${type}: ${count}&emsp; `;
+  }
   statsDiv.innerHTML = `
     <h3>Optimized Configuration</h3>
+    <p>Total Nodes: ${totalNodeCount}&emsp; ${typeCountsHtml}</p>
     <p>Total Edges: ${totalEdges}</p>
     <p>Total Weight: ${totalWeight}</p>
   `;

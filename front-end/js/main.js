@@ -1,5 +1,5 @@
 import { renderGraph } from './graph.js';
-import { updateOriginalStats, updateOptimizedStats } from './stats.js';
+import { updateOriginalStats, updateOptimizedStats, updateOriginalStatsNodesAndEdges } from './stats.js';
 
 // Global references
 let selectedLayout = null;
@@ -39,8 +39,8 @@ export function selectLayout(layoutFile) {
         isEditable,
         selectedLayout
       );
+      //updateOriginalStatsNodesAndEdges(selectedLayout.nodes, selectedLayout.edges);
       updateOriginalStats(selectedLayout);
-
       // Clear the optimized container
       document.getElementById("optimizedGraphContainer").innerHTML = "";
       document.getElementById("optimizedStats").innerHTML = "";
@@ -52,7 +52,6 @@ function optimizeSelectedLayout() {
   if (!selectedLayout) return;
   // const totalEdges = edges.length;
   // const totalWeight = edges.reduce((sum, e) => sum + e.cost, 0);
-
   let allEdges = selectedLayout.edges || [];
 
   if (selectedLayout.name === "Custom Layout") {
@@ -86,7 +85,7 @@ function optimizeSelectedLayout() {
         false,
         selectedLayout
       );
-      updateOptimizedStats(optimizedEdges);
+      updateOptimizedStats(selectedLayout.nodes,optimizedEdges);
     })
     .catch(err => console.error("Error optimizing layout:", err));
 }
