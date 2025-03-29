@@ -1,6 +1,31 @@
 import { updateOriginalStatsNodesAndEdges } from './stats.js';
 import { parseFloorPlanFilename } from './main.js'
 
+
+function addCostToEdges(nodes, edges, scaleMetersPerPixel) {
+  if (!nodes || !edges || !scaleMetersPerPixel) {
+    throw new Error("Layout must contain nodes, edges, and scaleMetersPerPixel");
+  }
+  
+  edges = edges.map(edge => {
+    const nodeA = nodes.find(n => n.id === edge.from);
+    const nodeB = nodes.find(n => n.id === edge.to);
+    if (!nodeA || !nodeB) {
+      console.warn(`Edge from ${edge.from} to ${edge.to} missing node(s).`);
+      return { ...edge, cost: 0 };
+    }
+    
+    const dx = nodeA.x - nodeB.x;
+    const dy = nodeA.y - nodeB.y;
+    const pixelDistance = Math.sqrt(dx * dx + dy * dy);
+    
+    const weight = pixelDistance / scaleMetersPerPixel;
+    return { ...edge, cost: parseFloat(weight.toFixed(2)) };
+  });
+  
+  return edges;
+}
+
 export function renderGraph(
   nodes,
   edges,
@@ -23,6 +48,8 @@ export function renderGraph(
   console.log("ratio", ratio);
 
   const localNodes = nodes.map(n => ({ ...n }));
+
+  edges = addCostToEdges(nodes, edges, ratio);
 
   const linkData = edges.map(e => {
     const sourceNode = localNodes.find(n => n.id === e.from);
@@ -123,18 +150,28 @@ export function renderGraph(
       }
     })
 
+    // .on("mouseup", function(event, edgeEnd) {
+    //   if (!event.altKey && edgeStart && edgeStart.id !== edgeEnd.id) {
+    //     event.stopPropagation();
+    //     console.log("ratio", ratio);
+    //     console.log("edgeStart x=" + edgeStart.x + ", y=" + edgeStart.y);
+
+    //     const dx = edgeStart.x - edgeEnd.x;
+    //     const dy = edgeStart.y - edgeEnd.y;
+    //     const pixelDistance = Math.sqrt(dx * dx + dy * dy);
+    //     const weight = pixelDistance / ratio;
+    //     if (weight) {
+    //       edges.push({ from: edgeStart.id, to: edgeEnd.id, cost: +weight });
+    //     }
+    //     renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
+    //   }
+    //   edgeStart = null;
+    // })
     .on("mouseup", function(event, edgeEnd) {
       if (!event.altKey && edgeStart && edgeStart.id !== edgeEnd.id) {
         event.stopPropagation();
-        // const weight = prompt("Enter weight for the new edge:");
-        console.log("ratio", ratio);
-        console.log("edgeStart x=" + edgeStart.x + ", y=" + edgeStart.y);
-        // const weight = 0 //calculate weight
-        const weight = ratio //calculate weight
-        if (weight) {
-          edges.push({ from: edgeStart.id, to: edgeEnd.id, cost: +weight });
-          renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
-        }
+        edges.push({ from: edgeStart.id, to: edgeEnd.id });
+        renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
       }
       edgeStart = null;
     })

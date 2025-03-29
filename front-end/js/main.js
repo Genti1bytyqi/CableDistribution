@@ -50,17 +50,10 @@ export function selectLayout(layoutFile) {
 
 function optimizeSelectedLayout() {
   if (!selectedLayout) return;
-  // const totalEdges = edges.length;
-  // const totalWeight = edges.reduce((sum, e) => sum + e.cost, 0);
+  // For custom layout, the user might have drawn some edges.
   let allEdges = selectedLayout.edges || [];
-
-  if (selectedLayout.name === "Custom Layout") {
-    // generate new edges from the node positions
-    const scale = selectedLayout.scaleMetersPerPixel || 1;
-    const autoEdges = createNearestNeighborEdges(selectedLayout.nodes, scale);
-    allEdges = autoEdges;
-  }
-
+  
+  // Do not overwrite user-provided edges. (You can merge with generated edges on the backend if needed.)
   const layoutForMST = {
     ...selectedLayout,
     edges: allEdges
@@ -74,8 +67,6 @@ function optimizeSelectedLayout() {
     .then(response => response.json())
     .then(data => {
       optimizedEdges = data.mstEdges;
-
-    
       renderGraph(
         selectedLayout.nodes,
         optimizedEdges,
@@ -85,10 +76,11 @@ function optimizeSelectedLayout() {
         false,
         selectedLayout
       );
-      updateOptimizedStats(selectedLayout.nodes,optimizedEdges);
+      updateOptimizedStats(selectedLayout.nodes, optimizedEdges);
     })
     .catch(err => console.error("Error optimizing layout:", err));
 }
+
 
 document.addEventListener("DOMContentLoaded", function () {
   // 1) Layout Dropdown
@@ -197,8 +189,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         selectedLayout.scaleMetersPerPixel = ratio || 1;
         selectedLayout.imageWidth = customWidth || 1068;  
-        selectedLayout.imageHeight = customHeight || 500;  
+        selectedLayout.imageHeight = customHeight || 500;
         console.log("scaleMetersPerPixel:", ratio);
+        console.log("imageWidth:", customWidth);
+        console.log("imageHeight:", customHeight);
 
         const reader = new FileReader();
         reader.onload = function (e) {
@@ -280,45 +274,45 @@ export function parseFloorPlanFilename(fileName) {
   return { width, height, ratio };
 }
 
-function createNearestNeighborEdges(nodes, scale = 1) {
-  const newEdges = [];
-  const usedPairs = new Set();
+// function createNearestNeighborEdges(nodes, scale = 1) {
+//   const newEdges = [];
+//   const usedPairs = new Set();
 
-  for (let i = 0; i < nodes.length; i++) {
-    const nodeA = nodes[i];
-    let minDist = Infinity;
-    let nearestNode = null;
+//   for (let i = 0; i < nodes.length; i++) {
+//     const nodeA = nodes[i];
+//     let minDist = Infinity;
+//     let nearestNode = null;
 
-    for (let j = 0; j < nodes.length; j++) {
-      if (i === j) continue;
-      const nodeB = nodes[j];
-      const dx = nodeA.x - nodeB.x;
-      const dy = nodeA.y - nodeB.y;
-      const pixelDistance = Math.sqrt(dx * dx + dy * dy);
+//     for (let j = 0; j < nodes.length; j++) {
+//       if (i === j) continue;
+//       const nodeB = nodes[j];
+//       const dx = nodeA.x - nodeB.x;
+//       const dy = nodeA.y - nodeB.y;
+//       const pixelDistance = Math.sqrt(dx * dx + dy * dy);
 
-      console.log("pixelDistance:", pixelDistance)
-      if (pixelDistance < minDist) {
-        minDist = pixelDistance;
-        nearestNode = nodeB;
-      }
-    }
+//       console.log("pixelDistance:", pixelDistance)
+//       if (pixelDistance < minDist) {
+//         minDist = pixelDistance;
+//         nearestNode = nodeB;
+//       }
+//     }
 
-    if (nearestNode) {
-      const key = [Math.min(nodeA.id, nearestNode.id), Math.max(nodeA.id, nearestNode.id)].join("-");
-      if (!usedPairs.has(key)) {
-        usedPairs.add(key);
+//     if (nearestNode) {
+//       const key = [Math.min(nodeA.id, nearestNode.id), Math.max(nodeA.id, nearestNode.id)].join("-");
+//       if (!usedPairs.has(key)) {
+//         usedPairs.add(key);
 
-        const realDistance = minDist / scale;
-        const cost = parseFloat(realDistance.toFixed(2));
+//         const realDistance = minDist / scale;
+//         const cost = parseFloat(realDistance.toFixed(2));
 
-        newEdges.push({
-          from: nodeA.id,
-          to: nearestNode.id,
-          cost
-        });
-      }
-    }
-  }
-  return newEdges;
-}
+//         newEdges.push({
+//           from: nodeA.id,
+//           to: nearestNode.id,
+//           cost
+//         });
+//       }
+//     }
+//   }
+//   return newEdges;
+// }
 
