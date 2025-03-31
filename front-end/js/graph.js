@@ -65,7 +65,7 @@ export function renderGraph(
       .attr("height", height)
       .attr("preserveAspectRatio", "xMidYMid meet");
   }
-
+  
   // If editable, allow adding new nodes by clicking on empty space
   svg.append("rect")
     .attr("width", width)
@@ -93,52 +93,72 @@ export function renderGraph(
         renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
       }
     });
-  // Draw edges as lines
-  svg.append("g")
-    .selectAll("line")
-    .data(linkData)
-    .enter()
-    .append("line")
-    .attr("x1", d => d.source.x)
-    .attr("y1", d => d.source.y)
-    .attr("x2", d => d.target.x)
-    .attr("y2", d => d.target.y)
-    .attr("stroke-width", 4)
-    //.attr("stroke", isOptimized ? "#4CAF50" : "#FF674D")
-    .attr("stroke",d => {
-      if (isOptimized) {
-        return "#4CAF50";
-      }if (d.edgeData.forced) {
-        return "#30AAF0"; 
-      } else {
-        return "#FF674D";
-      }
-    })
 
+  const animationTime = 300;
+  const delayAnimation = 500;
+  const lines = svg.append("g")
+  .selectAll("line")
+  .data(linkData.sort((a, b) => a.cost - b.cost))
+  .enter()
+  .append("line")
+  .attr("x1", d => d.source.x)
+  .attr("y1", d => d.source.y)
+  .attr("stroke-width", 4)
+  .attr("stroke", d => {
+    if (isOptimized) {
+      return "#4CAF50";
+    } else if (d.edgeData.forced) {
+      return "#30AAF0"; 
+    } else {
+      return "#FF674D";
+    }
+  });
 
-  // Draw edge labels (click to edit)
-  svg.append("g")
-    .selectAll("text.edge-label")
-    .data(linkData)
-    .enter()
-    .append("text")
-    .attr("class", "edge-label")
+if (isOptimized) {
+  // Set initial zero-length line endpoints
+  lines.attr("x2", d => d.source.x)
+       .attr("y2", d => d.source.y)
+       .transition()
+       .duration(animationTime)
+       .delay((d, i) => i * delayAnimation)
+       .attr("x2", d => d.target.x)
+       .attr("y2", d => d.target.y);
+} else {
+  // Draw lines immediately without animation
+  lines.attr("x2", d => d.target.x)
+       .attr("y2", d => d.target.y);
+}
+
+  const labels = svg.append("g")
+  .selectAll("text.edge-label")
+  .data(linkData.sort((a, b) => a.cost - b.cost))
+  .enter()
+  .append("text")
+  .attr("class", "edge-label")
+  // Start at the source coordinates and hidden when animated
+  .attr("x", d => isOptimized ? d.source.x : (d.source.x + d.target.x) / 2)
+  .attr("y", d => isOptimized ? d.source.y : ((d.source.y + d.target.y) / 2) - 5)
+  .attr("opacity", isOptimized ? 0 : 1)
+  .attr("text-anchor", "middle")
+  .attr("font-size", "12px")
+  .text(d => parseFloat(d.cost).toFixed(2))
+  .on("click", function(event, d) {
+    event.stopPropagation();
+    const newCost = prompt("Enter new cost for the edge:", d.cost);
+    if (newCost !== null && !isNaN(newCost)) {
+      d.edgeData.cost = +newCost;
+      d3.select(this).text(newCost);
+    }
+  });
+
+if (isOptimized) {
+  labels.transition()
+    .duration(animationTime)
+    .delay((d, i) => i * delayAnimation)
+    .attr("opacity", 1)
     .attr("x", d => (d.source.x + d.target.x) / 2)
-    .attr("y", d => ((d.source.y + d.target.y) / 2) - 5)
-    .attr("text-anchor", "middle")
-    .attr("font-size", "12px")
-    .text(d =>{
-      //if (!isOptimized) return "";            // hide in original graph
-      return parseFloat(d.cost).toFixed(2);
-    })
-    .on("click", function(event, d) {
-      event.stopPropagation();
-      const newCost = prompt("Enter new cost for the edge:", d.cost);
-      if (newCost !== null && !isNaN(newCost)) {
-        d.edgeData.cost = +newCost;
-        d3.select(this).text(newCost);
-      }
-    });
+    .attr("y", d => ((d.source.y + d.target.y) / 2) - 5);
+}
 
   let edgeStart = null;
 

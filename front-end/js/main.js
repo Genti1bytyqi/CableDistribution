@@ -8,7 +8,7 @@ let currentSelectedNodeType = "terminal";
 
 export function selectLayout(layoutFile) {
   const isEditable = layoutFile === "layouts/custom.json";
-  
+
   const nodeTypeButtonsDiv = document.getElementById("nodeTypeButtons");
   if (nodeTypeButtonsDiv) {
     nodeTypeButtonsDiv.style.display = isEditable ? "flex" : "none";
@@ -57,7 +57,7 @@ function optimizeSelectedLayout() {
   const layoutForMST = {
     nodes: selectedLayout.nodes,
     edges: allEdges,
-    scaleMetersPerPixel : selectedLayout.scaleMetersPerPixel || 1
+    scaleMetersPerPixel: selectedLayout.scaleMetersPerPixel || 1
   };
 
   fetch('/api/optimize', {
@@ -100,10 +100,76 @@ document.addEventListener("DOMContentLoaded", function () {
     optimizeBtn.addEventListener("click", optimizeSelectedLayout);
   }
 
+  // const saveSVGBtn = document.getElementById("saveSVGBtn");
+  // if (saveSVGBtn) {
+  //   saveSVGBtn.addEventListener("click", function () {
+
+  //     // const originalSvg = document.querySelector("#optimizedGraphContainer svg");
+  //     const originalSvg = document.querySelector("#optimizedGraphContainer svg");
+  //     const statsElement = document.getElementById("optimizedStats");
+
+  //     if (!originalSvg) {
+  //       alert("No optimized layout available to save!");
+  //       return;
+  //     }
+  //     // Clone the SVG so we don't modify the displayed one
+  //     const svgClone = originalSvg.cloneNode(true);
+
+  //     const originalHeight = parseInt(svgClone.getAttribute("height"), 10) || 500;
+  //     const statsHeight = 130; // extra height for stats
+  //     const newHeight = originalHeight + statsHeight;
+  //     svgClone.setAttribute("height", newHeight);
+
+  //     const viewBox = svgClone.getAttribute("viewBox");
+  //     if (viewBox) {
+  //       const vbParts = viewBox.split(" ");
+  //       if (vbParts.length === 4) {
+  //         vbParts[3] = newHeight;
+  //         svgClone.setAttribute("viewBox", vbParts.join(" "));
+  //       }
+  //     }
+  //     if (statsElement) {
+  //       const foreignObject = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+  //       foreignObject.setAttribute("x", "300");
+  //       foreignObject.setAttribute("y", originalHeight.toString());
+  //       foreignObject.setAttribute("width", "100%");
+  //       foreignObject.setAttribute("height", statsHeight.toString());
+
+  //       fetch("/css/style.css")
+
+  //       const statsDiv = document.createElement("div");
+  //       statsDiv.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
+  //       statsDiv.classList.add("svg-stats"); //need to fix the css is not taken!
+  //       statsDiv.innerHTML = statsElement.innerHTML;
+  //       foreignObject.appendChild(statsDiv);
+  //       svgClone.appendChild(foreignObject);
+  //     }
+  //     //console.log("foreign_object_attr:",foreignObject)
+  //     const serializer = new XMLSerializer();
+  //     let svgString = serializer.serializeToString(svgClone);
+
+  //     if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
+  //       svgString = svgString.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+  //     }
+  //     if (!svgString.includes('xmlns:xlink="http://www.w3.org/1999/xlink"')) {
+  //       svgString = svgString.replace("<svg", '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+  //     }
+  //     svgString = '<?xml version="1.0" standalone="no"?>\r\n' + svgString;
+  //     const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+  //     const url = URL.createObjectURL(blob);
+
+  //     const downloadLink = document.createElement("a");
+  //     downloadLink.href = url;
+  //     downloadLink.download = "optimized-layout.svg";
+  //     document.body.appendChild(downloadLink);
+  //     downloadLink.click();
+  //     document.body.removeChild(downloadLink);
+  //     URL.revokeObjectURL(url);
+  //   });
+  // }
   const saveSVGBtn = document.getElementById("saveSVGBtn");
   if (saveSVGBtn) {
     saveSVGBtn.addEventListener("click", function () {
-
       const originalSvg = document.querySelector("#optimizedGraphContainer svg");
       const statsElement = document.getElementById("optimizedStats");
 
@@ -133,39 +199,69 @@ document.addEventListener("DOMContentLoaded", function () {
         foreignObject.setAttribute("y", originalHeight.toString());
         foreignObject.setAttribute("width", "100%");
         foreignObject.setAttribute("height", statsHeight.toString());
-        
-        fetch("/css/style.css")
 
         const statsDiv = document.createElement("div");
         statsDiv.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-        statsDiv.classList.add("svg-stats"); //need to fix the css is not taken!
+        statsDiv.classList.add("svg-stats");
         statsDiv.innerHTML = statsElement.innerHTML;
         foreignObject.appendChild(statsDiv);
         svgClone.appendChild(foreignObject);
       }
-      //console.log("foreign_object_attr:",foreignObject)
-      const serializer = new XMLSerializer();
-      let svgString = serializer.serializeToString(svgClone);
 
-      if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
-        svgString = svgString.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
-      }
-      if (!svgString.includes('xmlns:xlink="http://www.w3.org/1999/xlink"')) {
-        svgString = svgString.replace("<svg", '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
-      }
-      svgString = '<?xml version="1.0" standalone="no"?>\r\n' + svgString;
-      const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
+      // Inline external images into the SVG
+      inlineImages(svgClone).then(() => {
+        const serializer = new XMLSerializer();
+        let svgString = serializer.serializeToString(svgClone);
 
-      const downloadLink = document.createElement("a");
-      downloadLink.href = url;
-      downloadLink.download = "optimized-layout.svg";
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      URL.revokeObjectURL(url);
+        if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
+          svgString = svgString.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+        }
+        if (!svgString.includes('xmlns:xlink="http://www.w3.org/1999/xlink"')) {
+          svgString = svgString.replace("<svg", '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+        }
+        svgString = '<?xml version="1.0" standalone="no"?>\r\n' + svgString;
+        const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+
+        const downloadLink = document.createElement("a");
+        downloadLink.href = url;
+        downloadLink.download = "optimized-layout.svg";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(url);
+      });
     });
   }
+
+  // Helper function to inline images by converting external references to data URIs
+  function inlineImages(svgElement) {
+    const images = svgElement.querySelectorAll("image");
+    const promises = [];
+    images.forEach(img => {
+      // Get the current image href (xlink:href or href)
+      let href = img.getAttribute("xlink:href") || img.getAttribute("href");
+      console.log("href:",href)
+      if (href && !href.startsWith("data:")) {
+        // Fetch the image file and convert it to a base64 data URI
+        const promise = fetch(href)
+          .then(response => response.blob())
+          .then(blob => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = function () {
+              img.removeAttribute("xlink:href");
+              img.setAttribute("xlink:href", reader.result);
+              resolve();
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          }));
+        promises.push(promise);
+      }
+    });
+    return Promise.all(promises);
+  }
+
 
   const floorPlanInput = document.getElementById("floorPlanInput");
   if (floorPlanInput) {
@@ -189,7 +285,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         selectedLayout.scaleMetersPerPixel = ratio || 1;
-        selectedLayout.imageWidth = customWidth || 1068;  
+        selectedLayout.imageWidth = customWidth || 1068;
         selectedLayout.imageHeight = customHeight || 500;
         console.log("scaleMetersPerPixel:", ratio);
         console.log("imageWidth:", customWidth);
