@@ -41,15 +41,11 @@ export function renderGraph(
   const width = layout.imageWidth || 1068;
   const height = layout.imageHeight || 500;
   const ratio = layout.scaleMetersPerPixel || 1;
-
-  console.log("backgroundImage", backgroundImage);
-  console.log("width", width);
-  console.log("height", height);
-  console.log("ratio", ratio);
-
   const localNodes = nodes.map(n => ({ ...n }));
 
-  edges = addCostToEdges(nodes, edges, ratio);
+  if (!isOptimized) {
+    edges = addCostToEdges(nodes, edges, ratio);
+  }
 
   const linkData = edges.map(e => {
     const sourceNode = localNodes.find(n => n.id === e.from);
@@ -79,19 +75,21 @@ export function renderGraph(
       if (!isEditable) return;
       if (event.target.tagName === "rect") {
         const [x, y] = d3.pointer(event);
-        const nodeName = prompt("Enter a name for the new node:", "Node " + (nodes.length + 1));
+        //const nodeId = (nodes.sort((a, b) => a.id - b.id)[nodes.length - 1]).id + 1;
+        const nodeId = nodes && nodes.length > 0 ? (nodes.sort((a, b) => a.id - b.id)[nodes.length - 1]).id + 1 : 0;
+        const nodeName = prompt("Enter a name for the new node:", "Node " + (nodeId + 1));
         if (nodeName === null) return;
 
         const newNodeType = window.currentSelectedNodeType || "terminal";
         const newNode = {
-          id: nodes.length,
+          id: nodeId,
           label: nodeName,
           x: x,
           y: y,
           type: newNodeType
         };
         nodes.push(newNode);
-
+        layout.nodes = nodes;
         renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
       }
     });
@@ -106,7 +104,16 @@ export function renderGraph(
     .attr("x2", d => d.target.x)
     .attr("y2", d => d.target.y)
     .attr("stroke-width", 4)
-    .attr("stroke", isOptimized ? "#4CAF50" : "#FF674D");
+    //.attr("stroke", isOptimized ? "#4CAF50" : "#FF674D")
+    .attr("stroke",d => {
+      if (isOptimized) {
+        return "#4CAF50";
+      }if (d.edgeData.forced) {
+        return "#30AAF0"; 
+      } else {
+        return "#FF674D";
+      }
+    })
 
 
   // Draw edge labels (click to edit)
@@ -121,7 +128,7 @@ export function renderGraph(
     .attr("text-anchor", "middle")
     .attr("font-size", "12px")
     .text(d =>{
-      if (!isOptimized) return "";            // hide in original graph
+      //if (!isOptimized) return "";            // hide in original graph
       return parseFloat(d.cost).toFixed(2);
     })
     .on("click", function(event, d) {
@@ -144,34 +151,49 @@ export function renderGraph(
     .attr("class", "node")
     .attr("transform", d => `translate(${d.x}, ${d.y})`)
     .on("mousedown", function(event, d) {
-      if (!event.altKey) {
         event.stopPropagation();
         edgeStart = d;
-      }
     })
-
-    // .on("mouseup", function(event, edgeEnd) {
-    //   if (!event.altKey && edgeStart && edgeStart.id !== edgeEnd.id) {
-    //     event.stopPropagation();
-    //     console.log("ratio", ratio);
-    //     console.log("edgeStart x=" + edgeStart.x + ", y=" + edgeStart.y);
-
-    //     const dx = edgeStart.x - edgeEnd.x;
-    //     const dy = edgeStart.y - edgeEnd.y;
-    //     const pixelDistance = Math.sqrt(dx * dx + dy * dy);
-    //     const weight = pixelDistance / ratio;
-    //     if (weight) {
-    //       edges.push({ from: edgeStart.id, to: edgeEnd.id, cost: +weight });
-    //     }
-    //     renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
-    //   }
-    //   edgeStart = null;
-    // })
     .on("mouseup", function(event, edgeEnd) {
-      if (!event.altKey && edgeStart && edgeStart.id !== edgeEnd.id) {
+      const allowedOutgoing = {
+        powerSupply: ["mainDistribution"],
+        mainDistribution: ["junction"],
+        junction: ["terminal", "switch"],
+        switch: ["light"],
+        terminal: ["terminal"]
+      };
+    
+      const allowedIncoming = {
+        light: ["switch"],
+        terminal: ["junction", "terminal"],
+        switch: ["junction"],
+        junction: ["mainDistribution"]
+      };
+      let forced = false;
+      if (event.altKey) {
+        forced = true;
+      }
+
+      if (edgeStart && edgeStart.id !== edgeEnd.id) {
         event.stopPropagation();
-        edges.push({ from: edgeStart.id, to: edgeEnd.id });
-        renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
+    
+        const from = edgeStart.id;
+        const to = edgeEnd.id;
+        const fromType = edgeStart.type;
+        const toType = edgeEnd.type;
+    
+        const outgoingOk = allowedOutgoing[fromType]?.includes(toType) ?? false;
+        const incomingOk = (toType in allowedIncoming)
+          ? allowedIncoming[toType].includes(fromType)
+          : true;
+    
+        if (outgoingOk && incomingOk) {
+          edges.push({ from, to, forced });
+          layout.edges = edges;
+          renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable, layout);
+        } else {
+          alert(`⚠️ Invalid connection: ${edgeStart.type } → ${edgeEnd.type}`);
+        }
       }
       edgeStart = null;
     })
@@ -189,6 +211,8 @@ export function renderGraph(
             edges.splice(i, 1);
           }
         }
+        layout.nodes = nodes;
+        layout.edges = edges;
         renderGraph(nodes, edges, containerSelector, isOptimized, backgroundImage, isEditable,layout);
       }
     })
@@ -243,9 +267,7 @@ export function renderGraph(
     .attr("text-anchor", "middle")
     .attr("font-size", "12px")
     .text(d => d.label);
-  
-    //updateOriginalStatsNodesAndEdges(nodes, edges);
-
+    console.log(edges)
     if (!isOptimized) {
       updateOriginalStatsNodesAndEdges(nodes, edges);
     }

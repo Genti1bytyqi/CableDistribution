@@ -1,303 +1,230 @@
-function isEdgeValid(edge, nodes, constraints) {
-  // Check maxCableCost constraint.
-  if (constraints.maxCableCost !== undefined && edge.cost > constraints.maxCableCost) {
-    return false;
-  }
-  return true;
-}
-
-// function kruskalMST(nodes, edges, constraints = {}) {
-//   const parent = {};
-//   const rank = {};
-//   nodes.forEach(n => {
-//     parent[n.id] = n.id;
-//     rank[n.id] = 0;
-//   });
-
-//   const validEdges = edges.filter(edge => isEdgeValid(edge, nodes, constraints));
-//   const sortedEdges = [...validEdges].sort((a, b) => a.cost - b.cost);
-//   const mstEdges = [];
-
-//   function findSet(i) {
-//     if (parent[i] !== i) {
-//       parent[i] = findSet(parent[i]);
-//     }
-//     return parent[i];
-//   }
-
-//   function union(x, y) {
-//     const rx = findSet(x);
-//     const ry = findSet(y);
-//     if (rx !== ry) {
-//       if (rank[rx] < rank[ry]) {
-//         parent[rx] = ry;
-//       } else if (rank[rx] > rank[ry]) {
-//         parent[ry] = rx;
-//       } else {
-//         parent[ry] = rx;
-//         rank[rx]++;
-//       }
-//     }
-//   }
-
-//   for (let edge of sortedEdges) {
-//     const rootSource = findSet(edge.from);
-//     const rootTarget = findSet(edge.to);
-//     if (rootSource !== rootTarget) {
-//       mstEdges.push(edge);
-//       union(rootSource, rootTarget);
-//     }
-//   }
-//   return mstEdges;
-// }
-
 function kruskalMST(nodes, edges, constraints = {}) {
-  // Build a lookup map for nodes by id.
-  const nodeMap = {};
-  nodes.forEach(n => { nodeMap[n.id] = n; });
-
-  // Allowed connection rules (unidirectional)
-  function isAllowed(nodeA, nodeB) {
-    switch (nodeA.type) {
-      case "powerSupply":
-        return nodeB.type === "mainDistribution";
-      case "mainDistribution":
-        return nodeB.type === "powerSupply" || nodeB.type === "junction";
-      case "light":
-        return nodeB.type === "switch";
-      case "switch":
-        return nodeB.type === "junction" || nodeB.type === "terminal" || nodeB.type === "light";
-      case "terminal":
-        return nodeB.type === "terminal" || nodeB.type === "switch" || nodeB.type === "junction";
-      case "junction":
-        return nodeB.type === "junction" || nodeB.type === "terminal" || nodeB.type === "switch" || nodeB.type === "mainDistribution";
-      default:
-        return false;
-    }
-  }
-  
-  // Given an edge, check if nodeA -> nodeB is allowed.
-  function isAllowedEdge(edge) {
-    const nodeA = nodeMap[edge.from];
-    const nodeB = nodeMap[edge.to];
-    return isAllowed(nodeA, nodeB);
-  }
-  
-  // Helper: if the edge connects a light and a switch, return the id of the light; otherwise, return null.
-  function getLightSwitchLightId(edge) {
-    const nodeA = nodeMap[edge.from];
-    const nodeB = nodeMap[edge.to];
-    if (nodeA.type === "light" && nodeB.type === "switch") return nodeA.id;
-    if (nodeA.type === "switch" && nodeB.type === "light") return nodeB.id;
-    return null;
-  }
-
-  // Compute computed (nearest-neighbor) edges.
   const scale = constraints.scaleMetersPerPixel || 1;
-  let computedEdges = createNearestNeighborEdges(nodes, scale)
-                        .filter(edge => isAllowedEdge(edge));
-  computedEdges = computedEdges.filter(edge => {
-    if (constraints.maxCableCost !== undefined && edge.cost > constraints.maxCableCost) {
-      return false;
-    }
-    return true;
-  });
-  computedEdges.sort((a, b) => a.cost - b.cost);
-  
-  // Filter user-specified (forced) edges.
-  const forcedEdges = (edges || []).filter(edge => isAllowedEdge(edge));
-  
-  // Merge forced and computed edges.
-  const mergedEdges = [...forcedEdges, ...computedEdges];
-  
-  // Initialize union-find.
-  const parent = {};
-  const rank = {};
-  nodes.forEach(n => {
-    parent[n.id] = n.id;
-    rank[n.id] = 0;
-  });
-  function findSet(i) {
-    if (parent[i] !== i) {
-      parent[i] = findSet(parent[i]);
-    }
-    return parent[i];
-  }
-  function union(x, y) {
-    const rx = findSet(x);
-    const ry = findSet(y);
-    if (rx !== ry) {
-      if (rank[rx] < rank[ry]) parent[rx] = ry;
-      else if (rank[rx] > rank[ry]) parent[ry] = rx;
-      else { parent[ry] = rx; rank[rx]++; }
-    }
-  }
-  
-  const mstEdges = [];
-  // Keep track of light nodes that already have a connection to a switch.
-  const lightSwitchConnected = {};
 
-  // Process forced edges first.
-  forcedEdges.forEach(edge => {
-    const lightId = getLightSwitchLightId(edge);
-    if (lightId !== null && lightSwitchConnected[lightId]) return;
-    if (findSet(edge.from) !== findSet(edge.to)) {
-      mstEdges.push(edge);
-      union(edge.from, edge.to);
-      if (lightId !== null) {
-        lightSwitchConnected[lightId] = true;
-      }
-    }
+  const nodeMap = {};
+  nodes.forEach(node => {
+    nodeMap[node.id] = node;
   });
-  
-  // Process computed edges.
-  computedEdges.forEach(edge => {
-    const lightId = getLightSwitchLightId(edge);
-    if (lightId !== null && lightSwitchConnected[lightId]) return;
-    if (findSet(edge.from) !== findSet(edge.to)) {
-      mstEdges.push(edge);
-      union(edge.from, edge.to);
-      if (lightId !== null) {
-        lightSwitchConnected[lightId] = true;
-      }
-    }
-  });
-  
-  // Fallback: ensure all nodes are connected.
-  let components = new Set(nodes.map(n => findSet(n.id)));
-  while (components.size > 1) {
-    let bestEdge = null;
-    let bestCost = Infinity;
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        if (findSet(nodes[i].id) !== findSet(nodes[j].id)) {
-          // Only consider candidate if allowed.
-          if (!isAllowed(nodes[i], nodes[j])) continue;
-          // Enforce one light-one switch: if this candidate is a light-switch edge and that light is already connected, skip.
-          let lightId = null;
-          if (nodes[i].type === "light" && nodes[j].type === "switch") {
-            lightId = nodes[i].id;
-          } else if (nodes[i].type === "switch" && nodes[j].type === "light") {
-            lightId = nodes[j].id;
-          }
-          if (lightId !== null && lightSwitchConnected[lightId]) continue;
-          
-          const dx = nodes[i].x - nodes[j].x;
-          const dy = nodes[i].y - nodes[j].y;
-          const pixelDistance = Math.sqrt(dx * dx + dy * dy);
-          const cost = parseFloat((pixelDistance / scale).toFixed(2));
-          if (cost < bestCost) {
-            bestCost = cost;
-            bestEdge = { from: nodes[i].id, to: nodes[j].id, cost };
-          }
-        }
-      }
-    }
-    if (bestEdge) {
-      const lightId = getLightSwitchLightId(bestEdge);
-      mstEdges.push(bestEdge);
-      union(bestEdge.from, bestEdge.to);
-      if (lightId !== null) {
-        lightSwitchConnected[lightId] = true;
-      }
-    } else {
+
+  const distributionRules = {
+    "powerSupply": ["mainDistribution"],
+    "mainDistribution": ["junction"],
+    "junction": ["terminal", "switch"],
+    "switch": ["light"],
+    "terminal": ["terminal"]
+  };
+
+  let mainDistribution = null;
+  for (const node of nodes) {
+    if (node.type === "mainDistribution") {
+      mainDistribution = node;
       break;
     }
-    components = new Set(nodes.map(n => findSet(n.id)));
   }
-  
-  return mstEdges;
-}
 
-function createNearestNeighborEdges(nodes, scale = 1) {
-  const newEdges = [];
-  const usedPairs = new Set();
+  if (!mainDistribution) {
+    throw new Error("No mainDistribution node found");
+  }
 
-  for (let i = 0; i < nodes.length; i++) {
-    const nodeA = nodes[i];
-    let minDist = Infinity;
-    let nearestNode = null;
+  const validEdges = [];
 
-    for (let j = 0; j < nodes.length; j++) {
-      if (i === j) continue;
-      const nodeB = nodes[j];
-      const dx = nodeA.x - nodeB.x;
-      const dy = nodeA.y - nodeB.y;
-      const pixelDistance = Math.sqrt(dx * dx + dy * dy);
+  for (const source of nodes) {
+    const sourceType = source.type;
+    const sourceId = source.id;
 
-      if (pixelDistance < minDist) {
-        minDist = pixelDistance;
-        nearestNode = nodeB;
-      }
+    // Skip nodes that can't distribute electricity
+    if (!distributionRules[sourceType]) {
+      continue;
     }
 
-    if (nearestNode) {
-      const key = [Math.min(nodeA.id, nearestNode.id), Math.max(nodeA.id, nearestNode.id)].join("-");
-      if (!usedPairs.has(key)) {
-        usedPairs.add(key);
-        const realDistance = minDist / scale;
-        const cost = parseFloat(realDistance.toFixed(2));
-        newEdges.push({
-          from: nodeA.id,
-          to: nearestNode.id,
-          cost
+    // Find all valid target nodes for this source node
+    const allowedTargetTypes = distributionRules[sourceType];
+
+    for (const target of nodes) {
+      const targetType = target.type;
+      const targetId = target.id;
+
+      // Skip self–connections
+      if (sourceId === targetId) {
+        continue;
+      }
+
+      // Check if this connection follows distribution rules
+      if (allowedTargetTypes.includes(targetType)) {
+        // Calculate Euclidean distance for edge weight
+        const distance = Math.sqrt(
+          Math.pow(source.x - target.x, 2) +
+          Math.pow(source.y - target.y, 2)
+        );
+        const cost = parseFloat((distance / scale).toFixed(2));
+
+        validEdges.push({
+          from: sourceId,
+          to: targetId,
+          from_label: nodeMap[sourceId].label || `Node ${sourceId}`,
+          to_label: nodeMap[targetId].label || `Node ${targetId}`,
+          cost: cost,
+          from_type: sourceType,
+          to_type: targetType
         });
       }
     }
   }
-  return newEdges;
+
+  const junctionNodes = nodes.filter(node => node.type === "junction");
+  const mainId = mainDistribution.id;
+
+  for (const junction of junctionNodes) {
+    const junctionId = junction.id;
+    const distance = Math.sqrt(
+      Math.pow(junction.x - mainDistribution.x, 2) +
+      Math.pow(junction.y - mainDistribution.y, 2)
+    );
+
+    validEdges.push({
+      from: mainId,
+      to: junctionId,
+      from_label: mainDistribution.label || `Node ${mainId}`,
+      to_label: junction.label || `Node ${junctionId}`,
+      cost: parseFloat((distance / scale).toFixed(2)),
+      from_type: "mainDistribution",
+      to_type: "junction",
+      note: "Required junction-mainDistribution connection"
+    });
+  }
+
+  validEdges.sort((a, b) => a.cost - b.cost);
+
+  const mst = [];
+  // Track which nodes already have a power source connection.
+  const hasPowerSource = new Set();
+
+  // Initialize union–find structures for cycle detection.
+  const parent = {};
+  const rank = {};
+
+  function makeSet(nodeId) {
+    parent[nodeId] = nodeId;
+    rank[nodeId] = 0;
+  }
+
+  function find(nodeId) {
+    if (parent[nodeId] !== nodeId) {
+      parent[nodeId] = find(parent[nodeId]);
+    }
+    return parent[nodeId];
+  }
+
+  function union(node1Id, node2Id) {
+    const root1 = find(node1Id);
+    const root2 = find(node2Id);
+
+    if (root1 !== root2) {
+      if (rank[root1] > rank[root2]) {
+        parent[root2] = root1;
+      } else {
+        parent[node1Id] = root2;
+        if (rank[root1] === rank[root2]) {
+          rank[root2]++;
+        }
+      }
+    }
+  }
+
+  // Initialize union–find for all nodes.
+  nodes.forEach(node => {
+    makeSet(node.id);
+  });
+
+  userEdges = edges.filter(edge => edge.forced == true);
+  console.log(userEdges);
+  for (const userEdge of userEdges) {
+    let cost;
+    if (userEdge.cost === undefined) {
+      const fromNode = nodeMap[userEdge.from];
+      const toNode = nodeMap[userEdge.to];
+      const distance = Math.sqrt(
+        Math.pow(fromNode.x - toNode.x, 2) + Math.pow(fromNode.y - toNode.y, 2)
+      );
+      cost = parseFloat((distance / scale).toFixed(2));
+    } else {
+      cost = userEdge.cost;
+    }
+  
+
+    const forcedEdge = {
+      from: userEdge.from,
+      to: userEdge.to,
+      from_label: nodeMap[userEdge.from].label || `Node ${userEdge.from}`,
+      to_label: nodeMap[userEdge.to].label || `Node ${userEdge.to}`,
+      cost: cost,
+      from_type: nodeMap[userEdge.from].type,
+      to_type: nodeMap[userEdge.to].type,
+      note: "User provided edge"
+    };
+
+    // Add the forced edge if it does not create a cycle.
+    if (find(forcedEdge.from) !== find(forcedEdge.to)) {
+      mst.push(forcedEdge);
+      hasPowerSource.add(forcedEdge.to);
+      union(forcedEdge.from, forcedEdge.to);
+    }
+  }
+
+  const powerSupplyNodes = nodes.filter(node => node.type === "powerSupply");
+  if (powerSupplyNodes.length > 0) {
+    const alreadyConnected = mst.some(edge =>
+      (edge.from_type === "powerSupply" && edge.to_type === "mainDistribution") ||
+      (edge.from_type === "mainDistribution" && edge.to_type === "powerSupply")
+    );
+    if (!alreadyConnected) {
+      const mainToPowerEdges = validEdges.filter(
+        edge => edge.from_type === "powerSupply" && edge.to_type === "mainDistribution"
+      );
+      if (mainToPowerEdges.length > 0) {
+        const closestEdge = mainToPowerEdges.reduce((min, edge) =>
+          edge.cost < min.cost ? edge : min, mainToPowerEdges[0]);
+        mst.push(closestEdge);
+        hasPowerSource.add(closestEdge.to);
+        union(closestEdge.from, closestEdge.to);
+      }
+    }
+  }
+
+  // Ensure all junctions get power from mainDistribution.
+  for (const junction of junctionNodes) {
+    const junctionId = junction.id;
+    if (!hasPowerSource.has(junctionId)) {
+      const junctionEdges = validEdges.filter(
+        edge => edge.from === mainId && edge.to === junctionId
+      );
+      if (junctionEdges.length > 0) {
+        const minEdge = junctionEdges.reduce((min, edge) =>
+          edge.cost < min.cost ? edge : min, junctionEdges[0]);
+        mst.push(minEdge);
+        hasPowerSource.add(junctionId);
+        union(minEdge.from, minEdge.to);
+      }
+    }
+  }
+
+  // Process any remaining computed edges.
+  for (const edge of validEdges) {
+    const fromId = edge.from;
+    const toId = edge.to;
+
+    // Skip if the target node already has a power source.
+    if (hasPowerSource.has(toId)) continue;
+
+    // Skip if adding this edge would create a cycle.
+    if (find(fromId) === find(toId)) continue;
+
+    mst.push(edge);
+    hasPowerSource.add(toId);
+    union(fromId, toId);
+  }
+
+  return mst;
 }
 
-
-// Helper: Identify if an edge is mandatory based on node type pairs.
-function isMandatoryEdge(edge, nodes) {
-  const nodeA = nodes.find(n => n.id === edge.from);
-  const nodeB = nodes.find(n => n.id === edge.to);
-  if (!nodeA || !nodeB) return false;
-  const typeA = nodeA.type;
-  const typeB = nodeB.type;
-
-  // Mandatory if:
-  // - "switch" <-> "light"
-  if ((typeA === "switch" && typeB === "light") || (typeA === "light" && typeB === "switch")) {
-    return true;
-  }
-  // - "powerSupply" <-> "mainDistribution"
-  if ((typeA === "powerSupply" && typeB === "mainDistribution") || (typeA === "mainDistribution" && typeB === "powerSupply")) {
-    return true;
-  }
-  // - "junction" <-> "mainDistribution"
-  if ((typeA === "junction" && typeB === "mainDistribution") || (typeA === "mainDistribution" && typeB === "junction")) {
-    return true;
-  }
-  return false;
-}
-
-function isAllowed(nodeA, nodeB) {
-  switch (nodeA.type) {
-    case "powerSupply":
-      return nodeB.type === "mainDistribution";
-    case "mainDistribution":
-      return nodeB.type === "powerSupply" || nodeB.type === "junction";
-    case "light":
-      return nodeB.type === "switch";
-    case "switch":
-      return nodeB.type === "junction" || nodeB.type === "terminal" || nodeB.type === "light";
-    case "terminal":
-      return nodeB.type === "terminal" || nodeB.type === "switch" || nodeB.type === "junction";
-    case "junction":
-      return nodeB.type === "junction" || nodeB.type === "terminal" || nodeB.type === "switch" || nodeB.type === "mainDistribution";
-    default:
-      return false;
-  }
-}
-
-// Convenience: given an edge and a node lookup map, check if the edge is allowed.
-function isAllowedEdge(edge, nodeMap) {
-  const nodeA = nodeMap[edge.from];
-  const nodeB = nodeMap[edge.to];
-  return isAllowed(nodeA, nodeB);
-}
-
-
-module.exports = { kruskalMST, createNearestNeighborEdges, isAllowedEdge };
+module.exports = { kruskalMST };

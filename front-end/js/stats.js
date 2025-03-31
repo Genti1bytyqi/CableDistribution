@@ -1,4 +1,5 @@
 export function updateOriginalStats(layout) {
+  console.log("updateOriginalStats called");
   const statsDiv = document.getElementById("originalStats");
   if (!layout) {
     statsDiv.innerHTML = "";
@@ -7,15 +8,19 @@ export function updateOriginalStats(layout) {
   const totalNodes = layout.nodes.length;
   const totalEdges = layout.edges.length;
   const totalWeight = layout.edges.reduce((sum, e) => sum + e.cost, 0).toFixed(2);
+
+ 
   statsDiv.innerHTML = `
     <h3>Original Configuration</h3>
     <p>Total Nodes: ${totalNodes}</p>
     <p>Total Edges: ${totalEdges}</p>
     <p>Total Weight: ${totalWeight}</p>
   `;
+  console.log(layout.edges);
 }
 
 export function updateOriginalStatsNodesAndEdges(totalNodes, totalEdges) {
+  console.log("updateOriginalStatsNodesAndEdges called");
   const statsDiv = document.getElementById("originalStats");
   
   // Basic counts

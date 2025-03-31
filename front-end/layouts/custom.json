@@ -4,7 +4,7 @@
     "edges": [
     ],
     "constraints": {
-      "maxCableCost": 10
+      "maxCableCost": 20
     },
     "backgroundImage": null
   }
