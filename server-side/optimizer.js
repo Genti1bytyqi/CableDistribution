@@ -32,12 +32,10 @@ function kruskalMST(nodes, edges, constraints = {}) {
     const sourceType = source.type;
     const sourceId = source.id;
 
-    // Skip nodes that can't distribute electricity
     if (!distributionRules[sourceType]) {
       continue;
     }
 
-    // Find all valid target nodes for this source node
     const allowedTargetTypes = distributionRules[sourceType];
 
     for (const target of nodes) {
@@ -96,10 +94,8 @@ function kruskalMST(nodes, edges, constraints = {}) {
   validEdges.sort((a, b) => a.cost - b.cost);
 
   const mst = [];
-  // Track which nodes already have a power source connection.
   const hasPowerSource = new Set();
 
-  // Initialize union–find structures for cycle detection.
   const parent = {};
   const rank = {};
 
@@ -131,7 +127,6 @@ function kruskalMST(nodes, edges, constraints = {}) {
     }
   }
 
-  // Initialize union–find for all nodes.
   nodes.forEach(node => {
     makeSet(node.id);
   });
@@ -191,7 +186,6 @@ function kruskalMST(nodes, edges, constraints = {}) {
     }
   }
 
-  // Ensure all junctions get power from mainDistribution.
   for (const junction of junctionNodes) {
     const junctionId = junction.id;
     if (!hasPowerSource.has(junctionId)) {
@@ -208,15 +202,12 @@ function kruskalMST(nodes, edges, constraints = {}) {
     }
   }
 
-  // Process any remaining computed edges.
   for (const edge of validEdges) {
     const fromId = edge.from;
     const toId = edge.to;
 
-    // Skip if the target node already has a power source.
     if (hasPowerSource.has(toId)) continue;
 
-    // Skip if adding this edge would create a cycle.
     if (find(fromId) === find(toId)) continue;
 
     mst.push(edge);

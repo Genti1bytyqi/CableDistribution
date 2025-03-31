@@ -38,7 +38,6 @@ export function updateOriginalStatsNodesAndEdges(totalNodes, totalEdges) {
     typeCounts[t]++;
   });
 
-  // Build an HTML snippet listing each type count
   let typeCountsHtml = "";
   for (const [type, count] of Object.entries(typeCounts)) {
     typeCountsHtml += `${type}: ${count}&emsp; `;

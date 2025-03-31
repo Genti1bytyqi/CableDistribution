@@ -1,10 +1,9 @@
 import { renderGraph } from './graph.js';
-import { updateOriginalStats, updateOptimizedStats, updateOriginalStatsNodesAndEdges } from './stats.js';
+import { updateOriginalStats, updateOptimizedStats } from './stats.js';
 
 // Global references
 let selectedLayout = null;
 let optimizedEdges = null;
-let currentSelectedNodeType = "terminal";
 
 export function selectLayout(layoutFile) {
   const isEditable = layoutFile === "layouts/custom.json";
@@ -40,7 +39,6 @@ export function selectLayout(layoutFile) {
         true,
         selectedLayout
       );
-      //updateOriginalStatsNodesAndEdges(selectedLayout.nodes, selectedLayout.edges);
       updateOriginalStats(selectedLayout);
       // Clear the optimized container
       document.getElementById("optimizedGraphContainer").innerHTML = "";
@@ -51,7 +49,6 @@ export function selectLayout(layoutFile) {
 
 function optimizeSelectedLayout() {
   if (!selectedLayout) return;
-  // For custom layout, the user might have drawn some edges.
   let allEdges = selectedLayout.edges || [];
 
   const layoutForMST = {
@@ -84,7 +81,7 @@ function optimizeSelectedLayout() {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-  // 1) Layout Dropdown
+
   const dropdown = document.getElementById("layoutDropdown");
   if (dropdown) {
     dropdown.addEventListener("change", function () {
@@ -100,73 +97,6 @@ document.addEventListener("DOMContentLoaded", function () {
     optimizeBtn.addEventListener("click", optimizeSelectedLayout);
   }
 
-  // const saveSVGBtn = document.getElementById("saveSVGBtn");
-  // if (saveSVGBtn) {
-  //   saveSVGBtn.addEventListener("click", function () {
-
-  //     // const originalSvg = document.querySelector("#optimizedGraphContainer svg");
-  //     const originalSvg = document.querySelector("#optimizedGraphContainer svg");
-  //     const statsElement = document.getElementById("optimizedStats");
-
-  //     if (!originalSvg) {
-  //       alert("No optimized layout available to save!");
-  //       return;
-  //     }
-  //     // Clone the SVG so we don't modify the displayed one
-  //     const svgClone = originalSvg.cloneNode(true);
-
-  //     const originalHeight = parseInt(svgClone.getAttribute("height"), 10) || 500;
-  //     const statsHeight = 130; // extra height for stats
-  //     const newHeight = originalHeight + statsHeight;
-  //     svgClone.setAttribute("height", newHeight);
-
-  //     const viewBox = svgClone.getAttribute("viewBox");
-  //     if (viewBox) {
-  //       const vbParts = viewBox.split(" ");
-  //       if (vbParts.length === 4) {
-  //         vbParts[3] = newHeight;
-  //         svgClone.setAttribute("viewBox", vbParts.join(" "));
-  //       }
-  //     }
-  //     if (statsElement) {
-  //       const foreignObject = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-  //       foreignObject.setAttribute("x", "300");
-  //       foreignObject.setAttribute("y", originalHeight.toString());
-  //       foreignObject.setAttribute("width", "100%");
-  //       foreignObject.setAttribute("height", statsHeight.toString());
-
-  //       fetch("/css/style.css")
-
-  //       const statsDiv = document.createElement("div");
-  //       statsDiv.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-  //       statsDiv.classList.add("svg-stats"); //need to fix the css is not taken!
-  //       statsDiv.innerHTML = statsElement.innerHTML;
-  //       foreignObject.appendChild(statsDiv);
-  //       svgClone.appendChild(foreignObject);
-  //     }
-  //     //console.log("foreign_object_attr:",foreignObject)
-  //     const serializer = new XMLSerializer();
-  //     let svgString = serializer.serializeToString(svgClone);
-
-  //     if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
-  //       svgString = svgString.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
-  //     }
-  //     if (!svgString.includes('xmlns:xlink="http://www.w3.org/1999/xlink"')) {
-  //       svgString = svgString.replace("<svg", '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
-  //     }
-  //     svgString = '<?xml version="1.0" standalone="no"?>\r\n' + svgString;
-  //     const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-  //     const url = URL.createObjectURL(blob);
-
-  //     const downloadLink = document.createElement("a");
-  //     downloadLink.href = url;
-  //     downloadLink.download = "optimized-layout.svg";
-  //     document.body.appendChild(downloadLink);
-  //     downloadLink.click();
-  //     document.body.removeChild(downloadLink);
-  //     URL.revokeObjectURL(url);
-  //   });
-  // }
   const saveSVGBtn = document.getElementById("saveSVGBtn");
   if (saveSVGBtn) {
     saveSVGBtn.addEventListener("click", function () {
@@ -181,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const svgClone = originalSvg.cloneNode(true);
 
       const originalHeight = parseInt(svgClone.getAttribute("height"), 10) || 500;
-      const statsHeight = 130; // extra height for stats
+      const statsHeight = 190; // extra height for stats
       const newHeight = originalHeight + statsHeight;
       svgClone.setAttribute("height", newHeight);
 
@@ -195,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       if (statsElement) {
         const foreignObject = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-        foreignObject.setAttribute("x", "300");
+        foreignObject.setAttribute("x", "5");
         foreignObject.setAttribute("y", originalHeight.toString());
         foreignObject.setAttribute("width", "100%");
         foreignObject.setAttribute("height", statsHeight.toString());
@@ -234,14 +164,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Helper function to inline images by converting external references to data URIs
   function inlineImages(svgElement) {
     const images = svgElement.querySelectorAll("image");
     const promises = [];
+    const XLINK_NS = "http://www.w3.org/1999/xlink";
+
     images.forEach(img => {
-      // Get the current image href (xlink:href or href)
-      let href = img.getAttribute("xlink:href") || img.getAttribute("href");
-      console.log("href:",href)
+      let href = img.getAttributeNS(XLINK_NS, "href") || img.getAttribute("href");
+
       if (href && !href.startsWith("data:")) {
         // Fetch the image file and convert it to a base64 data URI
         const promise = fetch(href)
@@ -249,8 +179,13 @@ document.addEventListener("DOMContentLoaded", function () {
           .then(blob => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = function () {
-              img.removeAttribute("xlink:href");
-              img.setAttribute("xlink:href", reader.result);
+              // Properly handle namespaced attributes
+              if (img.hasAttributeNS(XLINK_NS, "href")) {
+                img.setAttributeNS(XLINK_NS, "xlink:href", reader.result);
+              } else {
+                // For the newer href attribute (SVG 2.0)
+                img.setAttribute("href", reader.result);
+              }
               resolve();
             };
             reader.onerror = reject;
@@ -280,7 +215,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!isNaN(px) && !isNaN(m) && px > 0 && m > 0) {
             ratio = m / px;
           } else {
-            ratio = 1; // fallback if user cancels or inputs invalid data
+            ratio = 1;
           }
         }
 
@@ -338,7 +273,6 @@ export function parseFloorPlanFilename(fileName) {
   // Pattern for [width, height]
   const dimensionPattern = /\[([\d.]+)\s*,\s*([\d.]+)\]/;
 
-  // Pattern for (pixels, meters)
   const ratioPattern = /\(([\d.]+)\s*,\s*([\d.]+)\)/;
 
   let width = null;

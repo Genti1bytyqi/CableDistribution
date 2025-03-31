@@ -1,6 +1,7 @@
 import { updateOriginalStatsNodesAndEdges } from './stats.js';
-import { parseFloorPlanFilename } from './main.js'
 
+const animationTime = 250;
+const delayAnimation = 500;
 
 function addCostToEdges(nodes, edges, scaleMetersPerPixel) {
   if (!nodes || !edges || !scaleMetersPerPixel) {
@@ -94,8 +95,7 @@ export function renderGraph(
       }
     });
 
-  const animationTime = 300;
-  const delayAnimation = 500;
+
   const lines = svg.append("g")
   .selectAll("line")
   .data(linkData.sort((a, b) => a.cost - b.cost))
