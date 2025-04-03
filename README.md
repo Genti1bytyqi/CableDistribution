@@ -25,13 +25,13 @@
    cd your-repo-name
    ```
 
-- Install Node.js if not installed
+- Install Node.js if not installed ('https://nodejs.org/en/download')
   
 2. **Install Dependencies**
-  ```bash
-  npm install
-  ```
+    ```bash
+    npm install
+    ```
 3. **Run application**
-  ```bash
-  npm start
-  ```
+    ```bash
+    npm start
+    ```
