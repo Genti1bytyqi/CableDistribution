@@ -76,7 +76,6 @@ export function renderGraph(
       if (!isEditable) return;
       if (event.target.tagName === "rect") {
         const [x, y] = d3.pointer(event);
-        //const nodeId = (nodes.sort((a, b) => a.id - b.id)[nodes.length - 1]).id + 1;
         const nodeId = nodes && nodes.length > 0 ? (nodes.sort((a, b) => a.id - b.id)[nodes.length - 1]).id + 1 : 0;
         const nodeName = prompt("Enter a name for the new node:", "Node " + (nodeId + 1));
         if (nodeName === null) return;
@@ -115,7 +114,6 @@ export function renderGraph(
   });
 
 if (isOptimized) {
-  // Set initial zero-length line endpoints
   lines.attr("x2", d => d.source.x)
        .attr("y2", d => d.source.y)
        .transition()
@@ -124,7 +122,6 @@ if (isOptimized) {
        .attr("x2", d => d.target.x)
        .attr("y2", d => d.target.y);
 } else {
-  // Draw lines immediately without animation
   lines.attr("x2", d => d.target.x)
        .attr("y2", d => d.target.y);
 }
@@ -225,7 +222,6 @@ if (isOptimized) {
         if (nodeIndex > -1) {
           nodes.splice(nodeIndex, 1);
         }
-        // Remove edges connected to that node
         for (let i = edges.length - 1; i >= 0; i--) {
           if (edges[i].from === d.id || edges[i].to === d.id) {
             edges.splice(i, 1);
@@ -250,7 +246,6 @@ if (isOptimized) {
     .attr("stroke", "#2b6cb0")
     .attr("stroke-width", 1 );
 
-  // Icon in center
   nodeGroups.append("image")
     .attr("xlink:href", d => {
       switch (d.type) {

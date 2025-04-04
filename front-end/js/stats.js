@@ -14,7 +14,7 @@ export function updateOriginalStats(layout) {
     <h3>Original Configuration</h3>
     <p>Total Nodes: ${totalNodes}</p>
     <p>Total Edges: ${totalEdges}</p>
-    <p>Total Weight: ${totalWeight}</p>
+    <p>Total Cables in (m): ${totalWeight}</p>
   `;
   console.log(layout.edges);
 }
@@ -47,7 +47,7 @@ export function updateOriginalStatsNodesAndEdges(totalNodes, totalEdges) {
     <h3>Original Configuration</h3>
     <p>Total Nodes: ${totalNodeCount}&emsp; ${typeCountsHtml}</p>
     <p>Total Edges: ${totalEdgeCount}</p>
-    <p>Total Weight: ${totalWeight}</p>
+    <p>Total Cables in (m): ${totalWeight}</p>
   `;
 }
 
@@ -77,6 +77,6 @@ export function updateOptimizedStats(totalNodes,optimizedEdges) {
     <h3>Optimized Configuration</h3>
     <p>Total Nodes: ${totalNodeCount}&emsp; ${typeCountsHtml}</p>
     <p>Total Edges: ${totalEdges}</p>
-    <p>Total Weight: ${totalWeight}</p>
+    <p>Total Cables in (m): ${totalWeight}</p>
   `;
 }

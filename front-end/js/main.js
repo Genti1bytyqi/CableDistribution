@@ -1,7 +1,6 @@
 import { renderGraph } from './graph.js';
 import { updateOriginalStats, updateOptimizedStats } from './stats.js';
 
-// Global references
 let selectedLayout = null;
 let optimizedEdges = null;
 
@@ -35,12 +34,10 @@ export function selectLayout(layoutFile) {
         "#originalGraphContainer",
         false,
         selectedLayout.backgroundImage,
-        // isEditable,
         true,
         selectedLayout
       );
-      updateOriginalStats(selectedLayout);
-      // Clear the optimized container
+      updateOriginalStats(selectedLayout);r
       document.getElementById("optimizedGraphContainer").innerHTML = "";
       document.getElementById("optimizedStats").innerHTML = "";
     })
@@ -138,7 +135,6 @@ document.addEventListener("DOMContentLoaded", function () {
         svgClone.appendChild(foreignObject);
       }
 
-      // Inline external images into the SVG
       inlineImages(svgClone).then(() => {
         const serializer = new XMLSerializer();
         let svgString = serializer.serializeToString(svgClone);
@@ -179,11 +175,9 @@ document.addEventListener("DOMContentLoaded", function () {
           .then(blob => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = function () {
-              // Properly handle namespaced attributes
               if (img.hasAttributeNS(XLINK_NS, "href")) {
                 img.setAttributeNS(XLINK_NS, "xlink:href", reader.result);
               } else {
-                // For the newer href attribute (SVG 2.0)
                 img.setAttribute("href", reader.result);
               }
               resolve();
@@ -208,7 +202,6 @@ document.addEventListener("DOMContentLoaded", function () {
         let ratio = floorplanMetadata.ratio;
         let customWidth = floorplanMetadata.width;
         let customHeight = floorplanMetadata.height;
-        // If no ratio found, prompt user
         if (!ratio) {
           const px = parseFloat(prompt("Enter the pixel measurement (e.g. 252.5):", "200"));
           const m = parseFloat(prompt("Enter the real distance in meters (e.g. 3.35):", "3"));
@@ -259,7 +252,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const nodeTypeButtons = document.querySelectorAll('.node-type-button');
   nodeTypeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-      // 1) Update the global variable
       window.currentSelectedNodeType = btn.dataset.nodetype;
       console.log("Selected node type:", window.currentSelectedNodeType);
 
@@ -270,7 +262,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 export function parseFloorPlanFilename(fileName) {
-  // Pattern for [width, height]
+
   const dimensionPattern = /\[([\d.]+)\s*,\s*([\d.]+)\]/;
 
   const ratioPattern = /\(([\d.]+)\s*,\s*([\d.]+)\)/;
