@@ -42,7 +42,7 @@ export function updateOriginalStatsNodesAndEdges(totalNodes, totalEdges) {
   for (const [type, count] of Object.entries(typeCounts)) {
     typeCountsHtml += `${type}: ${count}&emsp; `;
   }
-  // Render the final stats
+ //statistikat
   statsDiv.innerHTML = `
     <h3>Original Configuration</h3>
     <p>Total Nodes: ${totalNodeCount}&emsp; ${typeCountsHtml}</p>
