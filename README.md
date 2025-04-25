@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Building Cable Distribution Optimizer** is a web application designed to optimize and visually present the layout of electrical cable distributions in buildings. The application uses a modified Minimum Spanning Tree (MST) algorithm with custom rules based on node types (e.g., `powerSupply`, `mainDistribution`, `junction`, `terminal`, `switch`, `light`) to compute optimal wiring configurations that minimize cost. It features an interactive visualization built with [D3.js](https://d3js.org/), enabling users to add nodes, adjust edge costs, and export the final graph as an SVG with embedded images.
+**Building Cable Distribution Optimizer** is a web application designed to optimize and visually present the layout of electrical cable distributions in buildings. The application uses a modified Minimum Spanning Tree (MST) algorithm with custom rules based on node types (e.g., `powerSupply`, `mainDistribution`, `junction`, `terminal`, `switch`, `light`) to compute optimal wiring configurations that minimize cost. It features an interactive visualization built with [D3.js](https://d3js.org/), enabling users to add nodes, adjust edge costs, and export the final graph as an SVG with embedded images .
 
 ## Features
 
